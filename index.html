@@ -65,16 +65,11 @@
           <div class="step-indicator-line"></div>
           <div class="step-indicator-node" data-step="3">
             <div class="node-circle">3</div>
-            <span class="node-label">Medical Info</span>
+            <span class="node-label">Security</span>
           </div>
           <div class="step-indicator-line"></div>
           <div class="step-indicator-node" data-step="4">
             <div class="node-circle">4</div>
-            <span class="node-label">Security</span>
-          </div>
-          <div class="step-indicator-line"></div>
-          <div class="step-indicator-node" data-step="5">
-            <div class="node-circle">5</div>
             <span class="node-label">Review</span>
           </div>
         </div>
@@ -169,6 +164,8 @@
                   <option value="Caregiver">Caregiver</option>
                   <option value="Doctor">Doctor</option>
                   <option value="Admin">Admin</option>
+                  <option value="Student">Student</option>
+                  <option value="Others">Others</option>
                 </select>
                 <label for="role">User Role *</label>
               </div>
@@ -315,8 +312,10 @@
             <div class="form-group" id="group-zip">
               <div class="input-container">
                 <span class="field-icon">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="4" y="4" width="16" height="16" rx="2"></rect>
+                    <line x1="9" y1="9" x2="15" y2="9"></line>
+                    <line x1="9" y1="13" x2="15" y2="13"></line>
                   </svg>
                 </span>
                 <input type="text" id="zip" placeholder=" " required>
@@ -343,10 +342,6 @@
               <span class="error-message" id="address-error"></span>
             </div>
           </div>
-        </fieldset>
-
-        <!-- STEP 3: Healthcare Information (Dynamic based on selected User Role) -->
-        <fieldset class="form-step-fieldset" id="step-3-fieldset">
           
           <!-- Doctor Specific Fields -->
           <div id="role-fields-doctor" class="dynamic-role-group" style="display: none;">
@@ -615,14 +610,13 @@
                   <input type="tel" id="emergency-phone" placeholder=" ">
                   <label for="emergency-phone">Emergency Phone Number *</label>
                 </div>
-                <span class="error-message" id="emergency-phone-error"></span>
-              </div>
+              <span class="error-message" id="emergency-phone-error"></span>
             </div>
           </div>
-        </fieldset>
-
-        <!-- STEP 4: Security Details -->
-        <fieldset class="form-step-fieldset" id="step-4-fieldset">
+        </div>
+      </fieldset>
+        <!-- STEP 3: Security Details -->
+        <fieldset class="form-step-fieldset" id="step-3-fieldset">
           <div class="form-grid">
             <!-- Password -->
             <div class="form-group" id="group-password">
@@ -700,8 +694,8 @@
           </div>
         </fieldset>
 
-        <!-- STEP 5: Review & Submit -->
-        <fieldset class="form-step-fieldset" id="step-5-fieldset">
+        <!-- STEP 4: Review & Submit -->
+        <fieldset class="form-step-fieldset" id="step-4-fieldset">
           <div class="review-page-container">
             <h3 class="step-section-heading">Please Review Your Details</h3>
             
@@ -717,14 +711,24 @@
               </div>
             </div>
 
-            <!-- Profile Info Grid -->
+            <!-- Account Profile Info Grid -->
             <div class="review-grid-card">
               <div class="review-section-header">
-                <h4>Account & Personal Information</h4>
+                <h4>Account Profile Information</h4>
                 <button type="button" class="btn-text-action btn-edit-step" data-target-step="1">Edit</button>
               </div>
               <div class="review-info-grid">
                 <div class="review-item"><strong>Username:</strong> <span id="review-username-val">-</span></div>
+              </div>
+            </div>
+
+            <!-- Personal & Address Info Grid -->
+            <div class="review-grid-card">
+              <div class="review-section-header">
+                <h4>Personal & Address Information</h4>
+                <button type="button" class="btn-text-action btn-edit-step" data-target-step="2">Edit</button>
+              </div>
+              <div class="review-info-grid">
                 <div class="review-item"><strong>Email:</strong> <span id="review-email-val">-</span></div>
                 <div class="review-item"><strong>Phone:</strong> <span id="review-phone-val">-</span></div>
                 <div class="review-item"><strong>DOB:</strong> <span id="review-dob-val">-</span></div>
@@ -734,10 +738,10 @@
             </div>
 
             <!-- Healthcare Info Grid -->
-            <div class="review-grid-card" id="review-medical-card">
+            <div class="review-grid-card" id="review-medical-card" style="display: none;">
               <div class="review-section-header">
                 <h4>Healthcare Details</h4>
-                <button type="button" class="btn-text-action btn-edit-step" data-target-step="3">Edit</button>
+                <button type="button" class="btn-text-action btn-edit-step" data-target-step="2">Edit</button>
               </div>
               <div class="review-info-grid" id="review-role-specific-info">
                 <!-- Populated dynamically via JS -->
@@ -748,7 +752,7 @@
             <div class="review-grid-card">
               <div class="review-section-header">
                 <h4>Security Details</h4>
-                <button type="button" class="btn-text-action btn-edit-step" data-target-step="4">Edit</button>
+                <button type="button" class="btn-text-action btn-edit-step" data-target-step="3">Edit</button>
               </div>
               <div class="review-info-grid">
                 <div class="review-item"><strong>Password:</strong> <span id="review-password-val">•••••••• (Secured)</span></div>

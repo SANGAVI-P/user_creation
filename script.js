@@ -30,6 +30,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const ageDisplayWrapper = document.getElementById('age-display-wrapper');
   const calculatedAgeSpan = document.getElementById('calculated-age');
   
+  // Address textareas
+  const addressTextarea = document.getElementById('address');
+  const addressCharCount = document.getElementById('address-char-count');
+  
   // Dynamic Role Groups
   const roleFieldsDoctor = document.getElementById('role-fields-doctor');
   const roleFieldsPatient = document.getElementById('role-fields-patient');
@@ -38,8 +42,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const emergencyContactGroup = document.getElementById('emergency-contact-group');
   
   // Textareas
-  const addressTextarea = document.getElementById('address');
-  const addressCharCount = document.getElementById('address-char-count');
   const patHistoryTextarea = document.getElementById('pat-history');
   const patHistoryCharCount = document.getElementById('pat-history-char-count');
   const patAllergiesTextarea = document.getElementById('pat-allergies');
@@ -80,6 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const reviewDobVal = document.getElementById('review-dob-val');
   const reviewGenderVal = document.getElementById('review-gender-val');
   const reviewAddressVal = document.getElementById('review-address-val');
+  const reviewMedicalCard = document.getElementById('review-medical-card');
   const reviewRoleSpecificInfo = document.getElementById('review-role-specific-info');
   
   // Search Simulation Cache
@@ -92,7 +95,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const svgEyeClosed = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>`;
   const defaultProfilePhotoSvg = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2364748b'><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/></svg>";
 
-  // Mock Database of Existing Users
+  // Mock Database of Existing Users (Simplified to match 4 steps)
   const mockUsers = [
     {
       userid: "SM0102",
@@ -108,13 +111,7 @@ document.addEventListener('DOMContentLoaded', () => {
       city: "Springfield",
       zip: "97477",
       address: "742 Evergreen Terrace, Medical District",
-      photo: defaultProfilePhotoSvg,
-      docEmployeeId: "DOC-2023-09",
-      docDepartment: "Cardiology",
-      docLicense: "LIC-77491-A",
-      docSpecialization: "Interventional Cardiology",
-      docExperience: "15",
-      docJoining: "2023-01-10"
+      photo: defaultProfilePhotoSvg
     },
     {
       userid: "SM0205",
@@ -130,15 +127,7 @@ document.addEventListener('DOMContentLoaded', () => {
       city: "Sydney",
       zip: "2000",
       address: "42 Wallaby Way, Sydney Cove",
-      photo: defaultProfilePhotoSvg,
-      patId: "PT-0492",
-      patBlood: "O+",
-      patInsurance: "INS-992-CA",
-      patHistory: "No major chronic illnesses. Appendix removed in 2018.",
-      patAllergies: "Allergic to Penicillin and Shellfish.",
-      emergencyName: "Jane Caine",
-      emergencyRelation: "Spouse",
-      emergencyPhone: "8885559876"
+      photo: defaultProfilePhotoSvg
     },
     {
       userid: "SM0309",
@@ -154,21 +143,13 @@ document.addEventListener('DOMContentLoaded', () => {
       city: "London",
       zip: "SW1A 2AA",
       address: "10 Downing St, Westminster",
-      photo: defaultProfilePhotoSvg,
-      carEmployeeId: "CAR-993-N",
-      carRelationship: "Registered Nurse",
-      carAssignedPatient: "Michael Robert Caine (SM0205)",
-      carShift: "Morning",
-      emergencyName: "Dmitry Rostov",
-      emergencyRelation: "Brother",
-      emergencyPhone: "7773332222"
+      photo: defaultProfilePhotoSvg
     }
   ];
 
   // Wizard state variables
   let currentStep = 1;
   let photoBase64 = null;
-  let isUsernameChecking = false;
   let usernameCheckedState = 'empty'; // 'empty', 'checking', 'available', 'taken'
   let usernameDebounceTimer = null;
   let isDirty = false;
@@ -261,7 +242,7 @@ document.addEventListener('DOMContentLoaded', () => {
     dobInput.max = `${yyyy}-${mm}-${dd}`;
   }
 
-  // --- USER ID & PATIENT ID GENERATION ---
+  // --- USER ID GENERATION ---
   function generateUserId() {
     if (userIdInput.value !== '') return;
     
@@ -271,15 +252,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const formattedId = `SM${String(nextNum).padStart(4, '0')}`;
     userIdInput.value = formattedId;
     userIdInput.closest('.form-group').classList.add('has-value');
-  }
-
-  function generatePatientId() {
-    const patIdInput = document.getElementById('pat-id');
-    if (!patIdInput || patIdInput.value !== '') return;
-
-    const randomNum = Math.floor(1000 + Math.random() * 9000);
-    patIdInput.value = `PT-${randomNum}`;
-    patIdInput.closest('.form-group').classList.add('has-value');
   }
 
   // --- CHARACTER COUNTERS ---
@@ -442,7 +414,7 @@ document.addEventListener('DOMContentLoaded', () => {
     roleFieldsAdmin.style.display = 'none';
     emergencyContactGroup.style.display = 'none';
 
-    // Remove required elements from fields to avoid blocking step navigation
+    // Remove required attributes from fields to avoid blocking step navigation
     clearRequiredAttributes();
 
     if (role === 'Doctor') {
@@ -480,6 +452,15 @@ document.addEventListener('DOMContentLoaded', () => {
       const el = document.getElementById(id);
       if (el) el.removeAttribute('required');
     });
+  }
+
+  function generatePatientId() {
+    const patIdInput = document.getElementById('pat-id');
+    if (!patIdInput || patIdInput.value !== '') return;
+
+    const randomNum = Math.floor(1000 + Math.random() * 9000);
+    patIdInput.value = `PT-${randomNum}`;
+    patIdInput.closest('.form-group').classList.add('has-value');
   }
 
   // --- PASSWORD TOGGLE VISIBILITY ---
@@ -623,6 +604,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function validateField(input) {
     if (!input) return true;
+    
+    // Readonly inputs bypass success border styling
+    if (input.hasAttribute('readonly')) {
+      clearValidationState(input);
+      return true;
+    }
+
     const id = input.id;
     const value = input.value.trim();
     const isRequired = input.hasAttribute('required');
@@ -706,6 +694,23 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
+    if (id === 'doc-experience') {
+      const num = parseInt(value);
+      if (isNaN(num) || num < 0 || num > 80) {
+        showError(input, "Please enter a valid experience period (0 to 80 years).");
+        return false;
+      }
+    }
+
+    if (id === 'doc-joining') {
+      const joiningDate = new Date(value);
+      const today = new Date();
+      if (joiningDate > today) {
+        showError(input, "Joining Date cannot be in the future.");
+        return false;
+      }
+    }
+
     if (id === 'password') {
       const hasLength = value.length >= 8;
       const hasUpperLower = /[A-Z]/.test(value) && /[a-z]/.test(value);
@@ -729,44 +734,33 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    // Number verification for Experience
-    if (id === 'doc-experience') {
-      const num = parseInt(value);
-      if (isNaN(num) || num < 0 || num > 80) {
-        showError(input, "Please enter a valid experience period (0 to 80 years).");
-        return false;
-      }
-    }
-
     showSuccess(input);
     return true;
   }
 
-  // --- MULTI-STEP NAVIGATION LOGIC ---
+  // --- MULTI-STEP NAVIGATION LOGIC (4 Steps total) ---
   function getStepFields(stepNum) {
     if (stepNum === 1) {
       return ['username', 'role'];
     }
     if (stepNum === 2) {
-      return ['fullname', 'dob', 'gender', 'email', 'phone', 'country', 'state', 'city', 'zip', 'address'];
-    }
-    if (stepNum === 3) {
+      const baseFields = ['fullname', 'dob', 'gender', 'email', 'phone', 'country', 'state', 'city', 'zip', 'address'];
       const role = roleSelect.value;
       if (role === 'Doctor') {
-        return ['doc-employee-id', 'doc-department', 'doc-license', 'doc-specialization', 'doc-experience', 'doc-joining'];
+        return baseFields.concat(['doc-employee-id', 'doc-department', 'doc-license', 'doc-specialization', 'doc-experience', 'doc-joining']);
       }
       if (role === 'Patient') {
-        return ['pat-blood', 'pat-insurance', 'emergency-name', 'emergency-relation', 'emergency-phone'];
+        return baseFields.concat(['pat-blood', 'pat-insurance', 'emergency-name', 'emergency-relation', 'emergency-phone']);
       }
       if (role === 'Caregiver') {
-        return ['car-employee-id', 'car-relationship', 'car-assigned-patient', 'car-shift', 'emergency-name', 'emergency-relation', 'emergency-phone'];
+        return baseFields.concat(['car-employee-id', 'car-relationship', 'car-assigned-patient', 'car-shift', 'emergency-name', 'emergency-relation', 'emergency-phone']);
       }
-      return []; // Admin needs no fields
+      return baseFields;
     }
-    if (stepNum === 4) {
+    if (stepNum === 3) {
       return ['password', 'confirm-password'];
     }
-    return [];
+    return []; // Review step has no inputs
   }
 
   function validateStep(stepNum) {
@@ -796,8 +790,8 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function updateWizardUI() {
-    // 1. Show/hide fieldsets
-    for (let i = 1; i <= 5; i++) {
+    // 1. Show/hide fieldsets (Step 1 to Step 4)
+    for (let i = 1; i <= 4; i++) {
       const fieldset = document.getElementById(`step-${i}-fieldset`);
       if (fieldset) {
         if (i === currentStep) {
@@ -842,7 +836,7 @@ document.addEventListener('DOMContentLoaded', () => {
       prevBtn.style.display = 'none';
       nextBtn.style.display = 'inline-flex';
       submitBtn.style.display = 'none';
-    } else if (currentStep === 5) {
+    } else if (currentStep === 4) {
       prevBtn.style.display = 'inline-flex';
       nextBtn.style.display = 'none';
       submitBtn.style.display = 'inline-flex';
@@ -861,9 +855,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const titles = {
       1: { title: "Profile Information", sub: "Initialize clinical credentials, identity number, and account role." },
       2: { title: "Personal Details", sub: "Input general identification parameters, contact details, and location." },
-      3: { title: "Healthcare Information", sub: "Provide medical record metrics or practitioner credentials details." },
-      4: { title: "Security Details", sub: "Establish high-security authentication parameters and credentials." },
-      5: { title: "Review & Submit", sub: "Audit input metrics, verify role permissions, and submit form." }
+      3: { title: "Security Details", sub: "Establish high-security authentication parameters and credentials." },
+      4: { title: "Review & Submit", sub: "Audit input metrics, verify role permissions, and submit form." }
     };
 
     stepTitle.textContent = titles[currentStep].title;
@@ -895,7 +888,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Step Node clicks (Allow going back)
+  // Step Node clicks (Allow going back or forward if valid)
   stepsIndicator.querySelectorAll('.step-indicator-node').forEach(node => {
     node.addEventListener('click', () => {
       const targetStep = parseInt(node.getAttribute('data-step'));
@@ -904,7 +897,6 @@ document.addEventListener('DOMContentLoaded', () => {
         saveDraftToStorage();
         updateWizardUI();
       } else if (targetStep > currentStep) {
-        // Can only skip forward if intermediate steps are fully valid
         let pathValid = true;
         for (let i = currentStep; i < targetStep; i++) {
           if (!validateStep(i)) {
@@ -947,45 +939,10 @@ document.addEventListener('DOMContentLoaded', () => {
       { el: document.getElementById('state').value, weight: 1 },
       { el: document.getElementById('city').value, weight: 1 },
       { el: document.getElementById('zip').value, weight: 1 },
-      { el: addressTextarea.value, weight: 1, minLen: 10 }
-    ];
-
-    // Add role specific fields to required metrics count
-    const role = roleSelect.value;
-    if (role === 'Doctor') {
-      requiredInputs.push(
-        { el: document.getElementById('doc-employee-id').value, weight: 1 },
-        { el: document.getElementById('doc-department').value, weight: 1 },
-        { el: document.getElementById('doc-license').value, weight: 1 },
-        { el: document.getElementById('doc-specialization').value, weight: 1 },
-        { el: document.getElementById('doc-experience').value, weight: 1 },
-        { el: document.getElementById('doc-joining').value, weight: 1 }
-      );
-    } else if (role === 'Patient') {
-      requiredInputs.push(
-        { el: document.getElementById('pat-blood').value, weight: 1 },
-        { el: document.getElementById('pat-insurance').value, weight: 1 },
-        { el: document.getElementById('emergency-name').value, weight: 1 },
-        { el: document.getElementById('emergency-relation').value, weight: 1 },
-        { el: document.getElementById('emergency-phone').value, weight: 1 }
-      );
-    } else if (role === 'Caregiver') {
-      requiredInputs.push(
-        { el: document.getElementById('car-employee-id').value, weight: 1 },
-        { el: document.getElementById('car-relationship').value, weight: 1 },
-        { el: document.getElementById('car-assigned-patient').value, weight: 1 },
-        { el: document.getElementById('car-shift').value, weight: 1 },
-        { el: document.getElementById('emergency-name').value, weight: 1 },
-        { el: document.getElementById('emergency-relation').value, weight: 1 },
-        { el: document.getElementById('emergency-phone').value, weight: 1 }
-      );
-    }
-
-    // Add security fields
-    requiredInputs.push(
+      { el: addressTextarea.value, weight: 1, minLen: 10 },
       { el: passwordInput.value, weight: 1, minLen: 8 },
       { el: confirmPasswordInput.value, weight: 1, matches: passwordInput.value }
-    );
+    ];
 
     let completedWeight = 0;
     let totalWeight = 0;
@@ -1031,46 +988,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const country = document.getElementById('country').value || '';
     const zip = document.getElementById('zip').value || '';
     reviewAddressVal.textContent = street ? `${street}, ${city}, ${state}, ${country} - ${zip}` : '-';
-
-    // Populate role-specific content
-    const role = roleSelect.value;
-    let html = '';
-
-    if (role === 'Doctor') {
-      html = `
-        <div class="review-item"><strong>Employee ID:</strong> <span>${document.getElementById('doc-employee-id').value}</span></div>
-        <div class="review-item"><strong>Department:</strong> <span>${document.getElementById('doc-department').value}</span></div>
-        <div class="review-item"><strong>Medical License:</strong> <span>${document.getElementById('doc-license').value}</span></div>
-        <div class="review-item"><strong>Specialization:</strong> <span>${document.getElementById('doc-specialization').value}</span></div>
-        <div class="review-item"><strong>Experience:</strong> <span>${document.getElementById('doc-experience').value} Years</span></div>
-        <div class="review-item"><strong>Joining Date:</strong> <span>${document.getElementById('doc-joining').value}</span></div>
-      `;
-    } else if (role === 'Patient') {
-      html = `
-        <div class="review-item"><strong>Patient ID:</strong> <span>${document.getElementById('pat-id').value}</span></div>
-        <div class="review-item"><strong>Blood Group:</strong> <span>${document.getElementById('pat-blood').value}</span></div>
-        <div class="review-item"><strong>Insurance Number:</strong> <span>${document.getElementById('pat-insurance').value}</span></div>
-        <div class="review-item span-full"><strong>Medical History:</strong> <span>${patHistoryTextarea.value || 'None declared'}</span></div>
-        <div class="review-item span-full"><strong>Known Allergies:</strong> <span>${patAllergiesTextarea.value || 'None declared'}</span></div>
-        <div class="review-item"><strong>Emergency Contact Name:</strong> <span>${document.getElementById('emergency-name').value}</span></div>
-        <div class="review-item"><strong>Relationship:</strong> <span>${document.getElementById('emergency-relation').value}</span></div>
-        <div class="review-item"><strong>Emergency Phone:</strong> <span>${document.getElementById('emergency-phone').value}</span></div>
-      `;
-    } else if (role === 'Caregiver') {
-      html = `
-        <div class="review-item"><strong>Caregiver ID:</strong> <span>${document.getElementById('car-employee-id').value}</span></div>
-        <div class="review-item"><strong>Relationship/Type:</strong> <span>${document.getElementById('car-relationship').value}</span></div>
-        <div class="review-item"><strong>Assigned Patient:</strong> <span>${document.getElementById('car-assigned-patient').value}</span></div>
-        <div class="review-item"><strong>Shift Assignment:</strong> <span>${document.getElementById('car-shift').value}</span></div>
-        <div class="review-item"><strong>Emergency Contact Name:</strong> <span>${document.getElementById('emergency-name').value}</span></div>
-        <div class="review-item"><strong>Relationship:</strong> <span>${document.getElementById('emergency-relation').value}</span></div>
-        <div class="review-item"><strong>Emergency Phone:</strong> <span>${document.getElementById('emergency-phone').value}</span></div>
-      `;
-    } else {
-      html = `<div class="review-item span-full">No clinical details required. Settings will configure post-creation.</div>`;
-    }
-
-    reviewRoleSpecificInfo.innerHTML = html;
   }
 
   // --- LOCALSTORAGE AUTOSAVE & RESTORE ---
@@ -1091,33 +1008,6 @@ document.addEventListener('DOMContentLoaded', () => {
       city: document.getElementById('city').value,
       zip: document.getElementById('zip').value,
       address: addressTextarea.value,
-      
-      // Doc details
-      docEmployeeId: document.getElementById('doc-employee-id').value,
-      docDepartment: document.getElementById('doc-department').value,
-      docLicense: document.getElementById('doc-license').value,
-      docSpecialization: document.getElementById('doc-specialization').value,
-      docExperience: document.getElementById('doc-experience').value,
-      docJoining: document.getElementById('doc-joining').value,
-      
-      // Patient details
-      patId: document.getElementById('pat-id').value,
-      patBlood: document.getElementById('pat-blood').value,
-      patInsurance: document.getElementById('pat-insurance').value,
-      patHistory: patHistoryTextarea.value,
-      patAllergies: patAllergiesTextarea.value,
-      
-      // Caregiver details
-      carEmployeeId: document.getElementById('car-employee-id').value,
-      carRelationship: document.getElementById('car-relationship').value,
-      carAssignedPatient: document.getElementById('car-assigned-patient').value,
-      carShift: document.getElementById('car-shift').value,
-      
-      // Emergency details
-      emergencyName: document.getElementById('emergency-name').value,
-      emergencyRelation: document.getElementById('emergency-relation').value,
-      emergencyPhone: document.getElementById('emergency-phone').value,
-      
       isDirty
     };
 
@@ -1134,6 +1024,9 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       const data = JSON.parse(dataStr);
       currentStep = data.currentStep || 1;
+      // Safeguard currentStep boundary
+      if (currentStep > 4) currentStep = 4;
+      
       photoBase64 = data.photoBase64 || null;
       isDirty = data.isDirty || false;
 
@@ -1151,32 +1044,6 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('city').value = data.city || '';
       document.getElementById('zip').value = data.zip || '';
       addressTextarea.value = data.address || '';
-
-      // Populate Doctor
-      document.getElementById('doc-employee-id').value = data.docEmployeeId || '';
-      document.getElementById('doc-department').value = data.docDepartment || '';
-      document.getElementById('doc-license').value = data.docLicense || '';
-      document.getElementById('doc-specialization').value = data.docSpecialization || '';
-      document.getElementById('doc-experience').value = data.docExperience || '';
-      document.getElementById('doc-joining').value = data.docJoining || '';
-
-      // Populate Patient
-      document.getElementById('pat-id').value = data.patId || '';
-      document.getElementById('pat-blood').value = data.patBlood || '';
-      document.getElementById('pat-insurance').value = data.patInsurance || '';
-      patHistoryTextarea.value = data.patHistory || '';
-      patAllergiesTextarea.value = data.patAllergies || '';
-
-      // Populate Caregiver
-      document.getElementById('car-employee-id').value = data.carEmployeeId || '';
-      document.getElementById('car-relationship').value = data.carRelationship || '';
-      document.getElementById('car-assigned-patient').value = data.carAssignedPatient || '';
-      document.getElementById('car-shift').value = data.carShift || '';
-
-      // Populate Emergency
-      document.getElementById('emergency-name').value = data.emergencyName || '';
-      document.getElementById('emergency-relation').value = data.emergencyRelation || '';
-      document.getElementById('emergency-phone').value = data.emergencyPhone || '';
 
       // Set photo UI
       if (photoBase64) {
@@ -1200,10 +1067,6 @@ document.addEventListener('DOMContentLoaded', () => {
         usernameStatus.style.display = 'inline-block';
       }
 
-      // Re-trigger layout calculations
-      if (roleSelect.value) {
-        toggleRoleFields(roleSelect.value);
-      }
       if (dobInput.value) {
         calculateAge();
       }
@@ -1291,7 +1154,6 @@ document.addEventListener('DOMContentLoaded', () => {
     userIdInput.value = '';
     generateUserId();
     
-    toggleRoleFields('');
     updateWizardUI();
     updateProfileCompletion();
   });
@@ -1360,7 +1222,6 @@ document.addEventListener('DOMContentLoaded', () => {
     currentStep = 1;
     userIdInput.value = '';
     generateUserId();
-    toggleRoleFields('');
     updateWizardUI();
     updateProfileCompletion();
   });
@@ -1444,48 +1305,13 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('zip').value = user.zip;
     addressTextarea.value = user.address;
 
-    // Doctor fields
-    if (user.role === 'Doctor') {
-      document.getElementById('doc-employee-id').value = user.docEmployeeId || '';
-      document.getElementById('doc-department').value = user.docDepartment || '';
-      document.getElementById('doc-license').value = user.docLicense || '';
-      document.getElementById('doc-specialization').value = user.docSpecialization || '';
-      document.getElementById('doc-experience').value = user.docExperience || '';
-      document.getElementById('doc-joining').value = user.docJoining || '';
-    }
-
-    // Patient fields
-    if (user.role === 'Patient') {
-      document.getElementById('pat-id').value = user.patId || '';
-      document.getElementById('pat-blood').value = user.patBlood || '';
-      document.getElementById('pat-insurance').value = user.patInsurance || '';
-      patHistoryTextarea.value = user.patHistory || '';
-      patAllergiesTextarea.value = user.patAllergies || '';
-    }
-
-    // Caregiver fields
-    if (user.role === 'Caregiver') {
-      document.getElementById('car-employee-id').value = user.carEmployeeId || '';
-      document.getElementById('car-relationship').value = user.carRelationship || '';
-      document.getElementById('car-assigned-patient').value = user.carAssignedPatient || '';
-      document.getElementById('car-shift').value = user.carShift || '';
-    }
-
-    // Emergency Contact
-    if (user.role === 'Patient' || user.role === 'Caregiver') {
-      document.getElementById('emergency-name').value = user.emergencyName || '';
-      document.getElementById('emergency-relation').value = user.emergencyRelation || '';
-      document.getElementById('emergency-phone').value = user.emergencyPhone || '';
-    }
-
     // Photo preview
     photoBase64 = user.photo;
     previewImage.src = user.photo;
     uploadControls.style.display = 'flex';
     uploadTrigger.closest('.profile-upload-container').classList.add('success-state');
 
-    // Trigger role toggles & age displays
-    toggleRoleFields(user.role);
+    // Trigger age displays
     calculateAge();
 
     // Trigger floating label positions
