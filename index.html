@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create New User | SmartMed Care Portal</title>
+  <meta name="description" content="Register new user roles, manage credentials, and configure profiles within the SmartMed healthcare management system.">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Search Overlay Button/Trigger and Search Panel -->
+  <div class="search-panel-container">
+    <div class="search-trigger-bar">
+      <div class="search-input-wrapper">
+        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input type="text" id="search-username-input" placeholder="Search existing usernames (simulated)..." autocomplete="off">
+        <button type="button" id="clear-search-btn" style="display: none;">&times;</button>
+      </div>
+      <div id="search-results-dropdown" class="search-results-dropdown"></div>
+    </div>
+  </div>
+
+  <main class="container">
+    <div class="card">
+      
+      <!-- Card Header -->
+      <header class="card-header">
+        <div class="header-top-row">
+          <div class="brand">
+            <span class="brand-icon">
+              <!-- Professional Heartbeat ECG + Cross Icon -->
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+                <path d="M12 5v14M5 12h14" stroke="var(--accent-green)" stroke-width="3" opacity="0.3" />
+              </svg>
+            </span>
+            <span class="brand-text">Smart<span>Med</span></span>
+          </div>
+          <!-- Live Profile Completion Indicator -->
+          <div class="profile-completion-badge">
+            <span class="badge-text">Profile Completion: <strong id="completion-percentage">0%</strong></span>
+            <div class="badge-progress-bg">
+              <div class="badge-progress-fill" id="completion-fill" style="width: 0%;"></div>
+            </div>
+          </div>
+        </div>
+        
+        <h1 class="card-title" id="wizard-step-title">Create New User</h1>
+        <p class="card-subtitle" id="wizard-step-subtitle">Register a new healthcare profile, credential set, and roles inside the portal.</p>
+
+        <!-- Wizard Step Indicators -->
+        <div class="wizard-steps-indicator" id="steps-indicator">
+          <div class="step-indicator-node active" data-step="1">
+            <div class="node-circle">1</div>
+            <span class="node-label">Profile</span>
+          </div>
+          <div class="step-indicator-line"></div>
+          <div class="step-indicator-node" data-step="2">
+            <div class="node-circle">2</div>
+            <span class="node-label">Personal</span>
+          </div>
+          <div class="step-indicator-line"></div>
+          <div class="step-indicator-node" data-step="3">
+            <div class="node-circle">3</div>
+            <span class="node-label">Medical Info</span>
+          </div>
+          <div class="step-indicator-line"></div>
+          <div class="step-indicator-node" data-step="4">
+            <div class="node-circle">4</div>
+            <span class="node-label">Security</span>
+          </div>
+          <div class="step-indicator-line"></div>
+          <div class="step-indicator-node" data-step="5">
+            <div class="node-circle">5</div>
+            <span class="node-label">Review</span>
+          </div>
+        </div>
+      </header>
+
+      <!-- Form Body -->
+      <form id="user-creation-form" class="form-body" novalidate autocomplete="off">
+        
+        <!-- STEP 1: Profile Information -->
+        <fieldset class="form-step-fieldset active" id="step-1-fieldset">
+          <!-- Profile Picture Upload Area -->
+          <section class="profile-upload-container">
+            <div class="profile-preview-wrapper" id="profile-upload-trigger" aria-label="Upload profile photo">
+              <input type="file" id="profile-photo" accept="image/png, image/jpeg, image/jpg">
+              <!-- Default Placeholder Image -->
+              <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2364748b'><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/></svg>" alt="Profile Preview" class="profile-preview" id="preview-image">
+              <div class="upload-overlay">
+                <svg viewBox="0 0 24 24">
+                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                  <circle cx="12" cy="13" r="4"/>
+                </svg>
+                <span>Upload</span>
+              </div>
+            </div>
+            <!-- Upload Control Buttons -->
+            <div class="upload-controls" id="upload-controls" style="display: none;">
+              <button type="button" class="btn-text-action btn-danger" id="remove-photo-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 14px; height: 14px; vertical-align: middle;">
+                  <polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
+                Remove
+              </button>
+              <button type="button" class="btn-text-action btn-primary-link" id="replace-photo-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 14px; height: 14px; vertical-align: middle;">
+                  <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path>
+                </svg>
+                Replace
+              </button>
+            </div>
+            <p class="upload-instructions" id="photo-instructions">
+              Drag & drop or click to upload a profile image. <br>
+              <strong>JPG or PNG</strong> (Max size: 2MB)
+            </p>
+            <span class="error-message" id="profile-photo-error"></span>
+          </section>
+
+          <div class="form-grid">
+            <!-- Auto Generated User ID (Read-only) -->
+            <div class="form-group" id="group-userid">
+              <div class="input-container">
+                <span class="field-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                  </svg>
+                </span>
+                <input type="text" id="userid" placeholder=" " readonly class="readonly-input">
+                <label for="userid">User ID (Read Only)</label>
+              </div>
+            </div>
+
+            <!-- Username with Availability Status -->
+            <div class="form-group" id="group-username">
+              <div class="input-container">
+                <span class="field-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="4" />
+                    <path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-3.92 7.94" />
+                  </svg>
+                </span>
+                <input type="text" id="username" placeholder=" " required autocomplete="off">
+                <label for="username">Username *</label>
+              </div>
+              <div class="username-availability-wrapper">
+                <span id="username-status" class="username-status-badge"></span>
+              </div>
+              <span class="error-message" id="username-error"></span>
+            </div>
+
+            <!-- User Role Select -->
+            <div class="form-group select-group span-full" id="group-role">
+              <div class="input-container">
+                <span class="field-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
+                    <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
+                  </svg>
+                </span>
+                <select id="role" required>
+                  <option value="" disabled selected hidden></option>
+                  <option value="Patient">Patient</option>
+                  <option value="Caregiver">Caregiver</option>
+                  <option value="Doctor">Doctor</option>
+                  <option value="Admin">Admin</option>
+                </select>
+                <label for="role">User Role *</label>
+              </div>
+              <span class="error-message" id="role-error"></span>
+            </div>
+          </div>
+        </fieldset>
+
+        <!-- STEP 2: Personal Details -->
+        <fieldset class="form-step-fieldset" id="step-2-fieldset">
+          <div class="form-grid">
+            <!-- Full Name -->
+            <div class="form-group" id="group-fullname">
+              <div class="input-container">
+                <span class="field-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                    <circle cx="12" cy="7" r="4" />
+                  </svg>
+                </span>
+                <input type="text" id="fullname" placeholder=" " required autocomplete="name">
+                <label for="fullname">Full Name *</label>
+              </div>
+              <span class="error-message" id="fullname-error"></span>
+            </div>
+
+            <!-- Date of Birth with Live Age display -->
+            <div class="form-group" id="group-dob">
+              <div class="input-container">
+                <span class="field-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                    <line x1="16" y1="2" x2="16" y2="6" />
+                    <line x1="8" y1="2" x2="8" y2="6" />
+                    <line x1="3" y1="10" x2="21" y2="10" />
+                  </svg>
+                </span>
+                <input type="date" id="dob" placeholder=" " required>
+                <label for="dob">Date of Birth *</label>
+              </div>
+              <div class="age-display-wrapper" id="age-display-wrapper" style="display: none;">
+                <span class="age-badge" id="calculated-age">Age: -</span>
+              </div>
+              <span class="error-message" id="dob-error"></span>
+            </div>
+
+            <!-- Gender selection -->
+            <div class="form-group select-group" id="group-gender">
+              <div class="input-container">
+                <span class="field-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="9" cy="15" r="4" />
+                    <path d="M17 9l5-5M22 9V4h-5M13 11l-4 4M9 19v3M6 22h6" />
+                    <circle cx="17" cy="7" r="3" />
+                  </svg>
+                </span>
+                <select id="gender" required>
+                  <option value="" disabled selected hidden></option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Non-binary">Non-binary</option>
+                  <option value="Prefer not to say">Prefer not to say</option>
+                </select>
+                <label for="gender">Gender *</label>
+              </div>
+              <span class="error-message" id="gender-error"></span>
+            </div>
+
+            <!-- Email Address -->
+            <div class="form-group" id="group-email">
+              <div class="input-container">
+                <span class="field-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                    <polyline points="22,6 12,13 2,6" />
+                  </svg>
+                </span>
+                <input type="email" id="email" placeholder=" " required autocomplete="email">
+                <label for="email">Email Address *</label>
+              </div>
+              <span class="error-message" id="email-error"></span>
+            </div>
+
+            <!-- Phone Number -->
+            <div class="form-group" id="group-phone">
+              <div class="input-container">
+                <span class="field-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+                  </svg>
+                </span>
+                <input type="tel" id="phone" placeholder=" " required autocomplete="tel">
+                <label for="phone">Phone Number *</label>
+              </div>
+              <span class="error-message" id="phone-error"></span>
+            </div>
+
+            <!-- Country -->
+            <div class="form-group" id="group-country">
+              <div class="input-container">
+                <span class="field-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line>
+                    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                  </svg>
+                </span>
+                <input type="text" id="country" placeholder=" " required autocomplete="country-name">
+                <label for="country">Country *</label>
+              </div>
+              <span class="error-message" id="country-error"></span>
+            </div>
+
+            <!-- State -->
+            <div class="form-group" id="group-state">
+              <div class="input-container">
+                <span class="field-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 22s-8-4.5-8-11.8A8 8 0 0 1 12 2a8 8 0 0 1 8 8.2c0 7.3-8 11.8-8 11.8z"></path>
+                    <circle cx="12" cy="10" r="3"></circle>
+                  </svg>
+                </span>
+                <input type="text" id="state" placeholder=" " required>
+                <label for="state">State *</label>
+              </div>
+              <span class="error-message" id="state-error"></span>
+            </div>
+
+            <!-- City -->
+            <div class="form-group" id="group-city">
+              <div class="input-container">
+                <span class="field-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 22s-8-4.5-8-11.8A8 8 0 0 1 12 2a8 8 0 0 1 8 8.2c0 7.3-8 11.8-8 11.8z"></path>
+                    <circle cx="12" cy="10" r="3"></circle>
+                  </svg>
+                </span>
+                <input type="text" id="city" placeholder=" " required>
+                <label for="city">City *</label>
+              </div>
+              <span class="error-message" id="city-error"></span>
+            </div>
+
+            <!-- ZIP Code -->
+            <div class="form-group" id="group-zip">
+              <div class="input-container">
+                <span class="field-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line>
+                  </svg>
+                </span>
+                <input type="text" id="zip" placeholder=" " required>
+                <label for="zip">ZIP Code *</label>
+              </div>
+              <span class="error-message" id="zip-error"></span>
+            </div>
+
+            <!-- Full Address text area with character counter -->
+            <div class="form-group textarea-group span-full" id="group-address">
+              <div class="input-container">
+                <span class="field-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                    <circle cx="12" cy="10" r="3" />
+                  </svg>
+                </span>
+                <textarea id="address" placeholder=" " required autocomplete="street-address" maxlength="500"></textarea>
+                <label for="address">Full Address *</label>
+              </div>
+              <div class="char-counter-wrapper">
+                <span class="char-counter" id="address-char-count">0 / 500 characters</span>
+              </div>
+              <span class="error-message" id="address-error"></span>
+            </div>
+          </div>
+        </fieldset>
+
+        <!-- STEP 3: Healthcare Information (Dynamic based on selected User Role) -->
+        <fieldset class="form-step-fieldset" id="step-3-fieldset">
+          
+          <!-- Doctor Specific Fields -->
+          <div id="role-fields-doctor" class="dynamic-role-group" style="display: none;">
+            <h3 class="step-section-heading">Doctor Information</h3>
+            <div class="form-grid">
+              
+              <div class="form-group" id="group-doc-employee-id">
+                <div class="input-container">
+                  <span class="field-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                  </span>
+                  <input type="text" id="doc-employee-id" placeholder=" ">
+                  <label for="doc-employee-id">Employee ID *</label>
+                </div>
+                <span class="error-message" id="doc-employee-id-error"></span>
+              </div>
+
+              <div class="form-group" id="group-doc-department">
+                <div class="input-container">
+                  <span class="field-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line></svg>
+                  </span>
+                  <input type="text" id="doc-department" placeholder=" ">
+                  <label for="doc-department">Department *</label>
+                </div>
+                <span class="error-message" id="doc-department-error"></span>
+              </div>
+
+              <div class="form-group" id="group-doc-license">
+                <div class="input-container">
+                  <span class="field-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+                  </span>
+                  <input type="text" id="doc-license" placeholder=" ">
+                  <label for="doc-license">Medical License Number *</label>
+                </div>
+                <span class="error-message" id="doc-license-error"></span>
+              </div>
+
+              <div class="form-group" id="group-doc-specialization">
+                <div class="input-container">
+                  <span class="field-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                  </span>
+                  <input type="text" id="doc-specialization" placeholder=" ">
+                  <label for="doc-specialization">Specialization *</label>
+                </div>
+                <span class="error-message" id="doc-specialization-error"></span>
+              </div>
+
+              <div class="form-group" id="group-doc-experience">
+                <div class="input-container">
+                  <span class="field-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                  </span>
+                  <input type="number" id="doc-experience" min="0" max="80" placeholder=" ">
+                  <label for="doc-experience">Experience (Years) *</label>
+                </div>
+                <span class="error-message" id="doc-experience-error"></span>
+              </div>
+
+              <div class="form-group" id="group-doc-joining">
+                <div class="input-container">
+                  <span class="field-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                  </span>
+                  <input type="date" id="doc-joining" placeholder=" ">
+                  <label for="doc-joining">Joining Date *</label>
+                </div>
+                <span class="error-message" id="doc-joining-error"></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Patient Specific Fields -->
+          <div id="role-fields-patient" class="dynamic-role-group" style="display: none;">
+            <h3 class="step-section-heading">Patient Details</h3>
+            <div class="form-grid">
+              
+              <div class="form-group" id="group-pat-id">
+                <div class="input-container">
+                  <span class="field-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                  </span>
+                  <input type="text" id="pat-id" placeholder=" " readonly class="readonly-input">
+                  <label for="pat-id">Patient ID (Auto-generated)</label>
+                </div>
+              </div>
+
+              <div class="form-group select-group" id="group-pat-blood">
+                <div class="input-container">
+                  <span class="field-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 12 2 12 2C12 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"></path></svg>
+                  </span>
+                  <select id="pat-blood">
+                    <option value="" disabled selected hidden></option>
+                    <option value="A+">A+</option>
+                    <option value="A-">A-</option>
+                    <option value="B+">B+</option>
+                    <option value="B-">B-</option>
+                    <option value="AB+">AB+</option>
+                    <option value="AB-">AB-</option>
+                    <option value="O+">O+</option>
+                    <option value="O-">O-</option>
+                  </select>
+                  <label for="pat-blood">Blood Group *</label>
+                </div>
+                <span class="error-message" id="pat-blood-error"></span>
+              </div>
+
+              <div class="form-group" id="group-pat-insurance">
+                <div class="input-container">
+                  <span class="field-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="12" rx="2" ry="2"></rect><line x1="3" y1="10" x2="21" y2="10"></line><line x1="7" y1="14" x2="7.01" y2="14"></line><line x1="11" y1="14" x2="13" y2="14"></line></svg>
+                  </span>
+                  <input type="text" id="pat-insurance" placeholder=" ">
+                  <label for="pat-insurance">Insurance Number *</label>
+                </div>
+                <span class="error-message" id="pat-insurance-error"></span>
+              </div>
+
+              <div class="form-group textarea-group span-full" id="group-pat-history">
+                <div class="input-container">
+                  <span class="field-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+                  </span>
+                  <textarea id="pat-history" placeholder=" " maxlength="500"></textarea>
+                  <label for="pat-history">Medical History (Chronic illnesses, surgeries...)</label>
+                </div>
+                <div class="char-counter-wrapper">
+                  <span class="char-counter" id="pat-history-char-count">0 / 500 characters</span>
+                </div>
+                <span class="error-message" id="pat-history-error"></span>
+              </div>
+
+              <div class="form-group textarea-group span-full" id="group-pat-allergies">
+                <div class="input-container">
+                  <span class="field-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                  </span>
+                  <textarea id="pat-allergies" placeholder=" " maxlength="500"></textarea>
+                  <label for="pat-allergies">Known Allergies (Food, medication, environment...)</label>
+                </div>
+                <div class="char-counter-wrapper">
+                  <span class="char-counter" id="pat-allergies-char-count">0 / 500 characters</span>
+                </div>
+                <span class="error-message" id="pat-allergies-error"></span>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Caregiver Specific Fields -->
+          <div id="role-fields-caregiver" class="dynamic-role-group" style="display: none;">
+            <h3 class="step-section-heading">Caregiver Details</h3>
+            <div class="form-grid">
+              
+              <div class="form-group" id="group-car-employee-id">
+                <div class="input-container">
+                  <span class="field-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                  </span>
+                  <input type="text" id="car-employee-id" placeholder=" ">
+                  <label for="car-employee-id">Caregiver ID *</label>
+                </div>
+                <span class="error-message" id="car-employee-id-error"></span>
+              </div>
+
+              <div class="form-group" id="group-car-relationship">
+                <div class="input-container">
+                  <span class="field-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                  </span>
+                  <input type="text" id="car-relationship" placeholder=" ">
+                  <label for="car-relationship">Relationship/Type * (e.g. Nurse, Family, In-Home)</label>
+                </div>
+                <span class="error-message" id="car-relationship-error"></span>
+              </div>
+
+              <div class="form-group" id="group-car-assigned-patient">
+                <div class="input-container">
+                  <span class="field-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                  </span>
+                  <input type="text" id="car-assigned-patient" placeholder=" ">
+                  <label for="car-assigned-patient">Assigned Patient Name/ID *</label>
+                </div>
+                <span class="error-message" id="car-assigned-patient-error"></span>
+              </div>
+
+              <div class="form-group select-group" id="group-car-shift">
+                <div class="input-container">
+                  <span class="field-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                  </span>
+                  <select id="car-shift">
+                    <option value="" disabled selected hidden></option>
+                    <option value="Morning">Morning Shift</option>
+                    <option value="Afternoon">Afternoon Shift</option>
+                    <option value="Night">Night Shift</option>
+                  </select>
+                  <label for="car-shift">Shift Assignment *</label>
+                </div>
+                <span class="error-message" id="car-shift-error"></span>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Admin Placeholder Field (If Role is Admin) -->
+          <div id="role-fields-admin" class="dynamic-role-group" style="display: none;">
+            <h3 class="step-section-heading">Administrator Settings</h3>
+            <div class="admin-notice-card">
+              <svg viewBox="0 0 24 24" fill="none" stroke="var(--primary-blue)" stroke-width="2" style="width: 28px; height: 28px;">
+                <circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>
+              </svg>
+              <div>
+                <p class="notice-title">System Administrator Account</p>
+                <p class="notice-desc">No additional healthcare medical profiles are required for Administrative accounts. Administrative controls will be configured post-creation.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Emergency Contact Section (Always shown for Patients and Caregivers, hidden for Doctor/Admin if desired, but let's make it show dynamically for Doctor, Patient, Caregiver. In fact, prompt says: Patient -> emergency contact; Caregiver -> emergency contact. Let's make it display for Patient & Caregiver roles, and hide otherwise). -->
+          <div id="emergency-contact-group" class="emergency-contact-group" style="display: none; margin-top: 24px;">
+            <h3 class="step-section-heading">Emergency Contact Details</h3>
+            <div class="form-grid">
+              <!-- Name -->
+              <div class="form-group" id="group-emergency-name">
+                <div class="input-container">
+                  <span class="field-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                      <circle cx="12" cy="7" r="4" />
+                    </svg>
+                  </span>
+                  <input type="text" id="emergency-name" placeholder=" ">
+                  <label for="emergency-name">Emergency Contact Name *</label>
+                </div>
+                <span class="error-message" id="emergency-name-error"></span>
+              </div>
+
+              <!-- Relationship -->
+              <div class="form-group" id="group-emergency-relation">
+                <div class="input-container">
+                  <span class="field-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                      <circle cx="9" cy="7" r="4" />
+                    </svg>
+                  </span>
+                  <input type="text" id="emergency-relation" placeholder=" ">
+                  <label for="emergency-relation">Relationship * (e.g. Spouse, Parent)</label>
+                </div>
+                <span class="error-message" id="emergency-relation-error"></span>
+              </div>
+
+              <!-- Phone Number -->
+              <div class="form-group" id="group-emergency-phone">
+                <div class="input-container">
+                  <span class="field-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+                    </svg>
+                  </span>
+                  <input type="tel" id="emergency-phone" placeholder=" ">
+                  <label for="emergency-phone">Emergency Phone Number *</label>
+                </div>
+                <span class="error-message" id="emergency-phone-error"></span>
+              </div>
+            </div>
+          </div>
+        </fieldset>
+
+        <!-- STEP 4: Security Details -->
+        <fieldset class="form-step-fieldset" id="step-4-fieldset">
+          <div class="form-grid">
+            <!-- Password -->
+            <div class="form-group" id="group-password">
+              <div class="input-container">
+                <span class="field-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                  </svg>
+                </span>
+                <input type="password" id="password" placeholder=" " required autocomplete="new-password">
+                <label for="password">Password *</label>
+                <button type="button" class="password-toggle-btn" id="toggle-password" aria-label="Toggle password visibility">
+                  <!-- Eye closed svg default -->
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                    <line x1="1" y1="1" x2="23" y2="23" />
+                  </svg>
+                </button>
+              </div>
+              <span class="error-message" id="password-error"></span>
+            </div>
+
+            <!-- Confirm Password -->
+            <div class="form-group" id="group-confirm-password">
+              <div class="input-container">
+                <span class="field-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                  </svg>
+                </span>
+                <input type="password" id="confirm-password" placeholder=" " required autocomplete="new-password">
+                <label for="confirm-password">Confirm Password *</label>
+                <button type="button" class="password-toggle-btn" id="toggle-confirm-password" aria-label="Toggle password visibility">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                    <line x1="1" y1="1" x2="23" y2="23" />
+                  </svg>
+                </button>
+              </div>
+              <span class="error-message" id="confirm-password-error"></span>
+            </div>
+
+            <!-- Password Strength Indicator Helper Box -->
+            <div class="password-strength-box" id="strength-box">
+              <div class="strength-header">
+                <span>Password Security:</span>
+                <span id="strength-label" style="color: var(--text-error)">Very Weak</span>
+              </div>
+              <div class="strength-meter">
+                <div class="strength-bar" id="bar-1"></div>
+                <div class="strength-bar" id="bar-2"></div>
+                <div class="strength-bar" id="bar-3"></div>
+              </div>
+              <ul class="strength-criteria">
+                <li class="criteria-item" id="rule-length">
+                  <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+                  At least 8 characters
+                </li>
+                <li class="criteria-item" id="rule-upper-lower">
+                  <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+                  Uppercase & lowercase letters
+                </li>
+                <li class="criteria-item" id="rule-number">
+                  <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+                  At least one digit (0-9)
+                </li>
+                <li class="criteria-item" id="rule-special">
+                  <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+                  At least one special char
+                </li>
+              </ul>
+            </div>
+          </div>
+        </fieldset>
+
+        <!-- STEP 5: Review & Submit -->
+        <fieldset class="form-step-fieldset" id="step-5-fieldset">
+          <div class="review-page-container">
+            <h3 class="step-section-heading">Please Review Your Details</h3>
+            
+            <div class="review-section-card">
+              <!-- Review Profile Header -->
+              <div class="review-profile-header">
+                <img id="review-profile-img" src="" alt="Profile Preview">
+                <div class="review-profile-meta">
+                  <h4 id="review-display-name">John Doe</h4>
+                  <p class="role-badge-pill" id="review-display-role">Doctor</p>
+                  <p class="userid-subtext">User ID: <span id="review-display-userid">SM0001</span></p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Profile Info Grid -->
+            <div class="review-grid-card">
+              <div class="review-section-header">
+                <h4>Account & Personal Information</h4>
+                <button type="button" class="btn-text-action btn-edit-step" data-target-step="1">Edit</button>
+              </div>
+              <div class="review-info-grid">
+                <div class="review-item"><strong>Username:</strong> <span id="review-username-val">-</span></div>
+                <div class="review-item"><strong>Email:</strong> <span id="review-email-val">-</span></div>
+                <div class="review-item"><strong>Phone:</strong> <span id="review-phone-val">-</span></div>
+                <div class="review-item"><strong>DOB:</strong> <span id="review-dob-val">-</span></div>
+                <div class="review-item"><strong>Gender:</strong> <span id="review-gender-val">-</span></div>
+                <div class="review-item span-full"><strong>Address:</strong> <span id="review-address-val">-</span></div>
+              </div>
+            </div>
+
+            <!-- Healthcare Info Grid -->
+            <div class="review-grid-card" id="review-medical-card">
+              <div class="review-section-header">
+                <h4>Healthcare Details</h4>
+                <button type="button" class="btn-text-action btn-edit-step" data-target-step="3">Edit</button>
+              </div>
+              <div class="review-info-grid" id="review-role-specific-info">
+                <!-- Populated dynamically via JS -->
+              </div>
+            </div>
+
+            <!-- Security Grid -->
+            <div class="review-grid-card">
+              <div class="review-section-header">
+                <h4>Security Details</h4>
+                <button type="button" class="btn-text-action btn-edit-step" data-target-step="4">Edit</button>
+              </div>
+              <div class="review-info-grid">
+                <div class="review-item"><strong>Password:</strong> <span id="review-password-val">•••••••• (Secured)</span></div>
+              </div>
+            </div>
+          </div>
+        </fieldset>
+
+        <!-- Form Actions Footer (Wizard Navigation Controls) -->
+        <footer class="form-actions" id="wizard-form-actions">
+          <div class="left-actions">
+            <button type="button" class="btn btn-secondary" id="reset-btn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 16px; height: 16px;">
+                <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+              </svg>
+              Reset
+            </button>
+          </div>
+          <div class="right-actions">
+            <button type="button" class="btn btn-secondary" id="prev-btn" style="display: none;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px;">
+                <line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline>
+              </svg>
+              Back
+            </button>
+            <button type="button" class="btn btn-primary" id="next-btn">
+              Next
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px;">
+                <line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline>
+              </svg>
+            </button>
+            <button type="submit" class="btn btn-primary btn-success" id="submit-btn" style="display: none;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 16px; height: 16px;">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                <circle cx="8.5" cy="7" r="4" />
+                <polyline points="17 11 19 13 23 9" />
+              </svg>
+              Submit Credentials
+            </button>
+          </div>
+        </footer>
+
+      </form>
+    </div>
+  </main>
+
+  <!-- Simulating Backend Post Loading Animation Overlay -->
+  <div class="loading-overlay" id="loading-overlay" aria-hidden="true" role="presentation">
+    <div class="spinner"></div>
+    <span class="loading-text">Validating & creating credentials...</span>
+  </div>
+
+  <!-- Reset Confirmation Dialog Box Overlay -->
+  <div class="custom-modal" id="reset-confirm-modal" aria-hidden="true" role="dialog" aria-labelledby="reset-modal-title">
+    <div class="modal-card">
+      <div class="modal-warning-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="var(--text-error)" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+      </div>
+      <h2 class="modal-title" id="reset-modal-title">Reset Draft Form?</h2>
+      <p class="modal-desc">This will erase all details entered in this wizard and discard your local draft. This action cannot be undone.</p>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" id="reset-cancel-btn">Cancel</button>
+        <button type="button" class="btn btn-primary btn-danger-action" id="reset-confirm-btn">Yes, Reset</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Success Animation Dialog Box Overlay -->
+  <div class="success-modal" id="success-modal" aria-hidden="true" role="dialog" aria-labelledby="modal-title">
+    <div class="success-card">
+      <div class="checkmark-container">
+        <!-- SVG Success Icon with Draw Path Anim -->
+        <svg class="checkmark-svg" viewBox="0 0 52 52">
+          <circle class="checkmark-circle" cx="26" cy="26" r="25" fill="none"/>
+          <path class="checkmark-check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+        </svg>
+      </div>
+      <h2 class="success-title" id="modal-title">User Created Successfully!</h2>
+      <p class="success-desc">The new SmartMed credentials and portal configurations have been initialized.</p>
+      
+      <!-- Summarized Created Details Card -->
+      <div class="success-details">
+        <div><strong>User ID:</strong> <span id="res-userid">-</span></div>
+        <div><strong>Name:</strong> <span id="res-fullname">-</span></div>
+        <div><strong>Username:</strong> <span id="res-username">-</span></div>
+        <div><strong>Email:</strong> <span id="res-email">-</span></div>
+        <div><strong>Assigned Role:</strong> <span id="res-role" style="color: var(--primary-blue)">-</span></div>
+      </div>
+
+      <button type="button" class="btn btn-primary" id="success-done-btn" style="width: 100%;">
+        Done & Continue
+      </button>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
