@@ -9,20 +9,14 @@ document.addEventListener('DOMContentLoaded', () => {
   const removePhotoBtn = document.getElementById('remove-photo-btn');
   const replacePhotoBtn = document.getElementById('replace-photo-btn');
   
-  // Navigation elements
-  const prevBtn = document.getElementById('prev-btn');
-  const nextBtn = document.getElementById('next-btn');
+  // Navigation elements (Simplified for Single-page Form)
   const submitBtn = document.getElementById('submit-btn');
-  const stepsIndicator = document.getElementById('steps-indicator');
-  const stepTitle = document.getElementById('wizard-step-title');
-  const stepSubtitle = document.getElementById('wizard-step-subtitle');
   
   // Completion metrics
   const completionPercentage = document.getElementById('completion-percentage');
   const completionFill = document.getElementById('completion-fill');
   
   // Fields elements
-  const userIdInput = document.getElementById('userid');
   const usernameInput = document.getElementById('username');
   const usernameStatus = document.getElementById('username-status');
   const roleSelect = document.getElementById('role');
@@ -71,20 +65,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const resetConfirmBtn = document.getElementById('reset-confirm-btn');
   const resetButton = document.getElementById('reset-btn');
   
-  // Review page variables
-  const reviewDisplayName = document.getElementById('review-display-name');
-  const reviewDisplayRole = document.getElementById('review-display-role');
-  const reviewDisplayUserid = document.getElementById('review-display-userid');
-  const reviewProfileImg = document.getElementById('review-profile-img');
-  const reviewUsernameVal = document.getElementById('review-username-val');
-  const reviewEmailVal = document.getElementById('review-email-val');
-  const reviewPhoneVal = document.getElementById('review-phone-val');
-  const reviewDobVal = document.getElementById('review-dob-val');
-  const reviewGenderVal = document.getElementById('review-gender-val');
-  const reviewAddressVal = document.getElementById('review-address-val');
-  const reviewMedicalCard = document.getElementById('review-medical-card');
-  const reviewRoleSpecificInfo = document.getElementById('review-role-specific-info');
-  
   // Search Simulation Cache
   const searchUsernameInput = document.getElementById('search-username-input');
   const clearSearchBtn = document.getElementById('clear-search-btn');
@@ -95,8 +75,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const svgEyeClosed = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>`;
   const defaultProfilePhotoSvg = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2364748b'><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/></svg>";
 
-  // Mock Database of Existing Users (Simplified to match 4 steps)
-  const mockUsers = [
+  // Mock Database of Existing Users
+  const defaultMockUsers = [
     {
       userid: "SM0102",
       fullname: "Dr. Sarah Jenkins",
@@ -147,16 +127,28 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   ];
 
-  // Wizard state variables
-  let currentStep = 1;
+  let mockUsers = [];
+  const storedUsers = localStorage.getItem('smartmed_mock_users');
+  if (storedUsers) {
+    try {
+      mockUsers = JSON.parse(storedUsers);
+    } catch (e) {
+      console.error("Failed to parse stored mock users: ", e);
+      mockUsers = [...defaultMockUsers];
+    }
+  } else {
+    mockUsers = [...defaultMockUsers];
+    localStorage.setItem('smartmed_mock_users', JSON.stringify(mockUsers));
+  }
+
+  // Form state variables
   let photoBase64 = null;
   let usernameCheckedState = 'empty'; // 'empty', 'checking', 'available', 'taken'
   let usernameDebounceTimer = null;
   let isDirty = false;
 
-  // Set initial dates and IDs
+  // Set initial dates
   initMaxDobDate();
-  generateUserId();
 
   // Load Saved Draft on Init
   restoreDraftFromStorage();
@@ -242,16 +234,11 @@ document.addEventListener('DOMContentLoaded', () => {
     dobInput.max = `${yyyy}-${mm}-${dd}`;
   }
 
-  // --- USER ID GENERATION ---
-  function generateUserId() {
-    if (userIdInput.value !== '') return;
-    
+  // --- USER ID GENERATION (BACKEND SIMULATION) ---
+  function generateNewUserId() {
     let nextNum = parseInt(localStorage.getItem('smartmed_last_userid_index') || '10');
     nextNum++;
-    
-    const formattedId = `SM${String(nextNum).padStart(4, '0')}`;
-    userIdInput.value = formattedId;
-    userIdInput.closest('.form-group').classList.add('has-value');
+    return `SM${String(nextNum).padStart(4, '0')}`;
   }
 
   // --- CHARACTER COUNTERS ---
@@ -270,10 +257,7 @@ document.addEventListener('DOMContentLoaded', () => {
   setupCharCounter(patHistoryTextarea, patHistoryCharCount);
   setupCharCounter(patAllergiesTextarea, patAllergiesCharCount);
 
-  // --- DRAG AND DROP PROFILE PHOTO ---
-  uploadTrigger.addEventListener('click', () => {
-    photoInput.click();
-  });
+  // --- DRAG AND DROP PROFILE PHOTO (OPTIONAL) ---
 
   replacePhotoBtn.addEventListener('click', (e) => {
     e.stopPropagation();
@@ -287,6 +271,8 @@ document.addEventListener('DOMContentLoaded', () => {
     photoBase64 = null;
     uploadControls.style.display = 'none';
     uploadTrigger.closest('.profile-upload-container').classList.remove('success-state');
+    photoError.textContent = "";
+    document.getElementById('photo-instructions').style.color = "var(--text-muted)";
     isDirty = true;
     saveDraftToStorage();
     updateProfileCompletion();
@@ -313,6 +299,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
+  uploadTrigger.addEventListener('click', (e) => {
+    // Only call click if user clicked wrapper elements other than the file input itself to avoid recursion
+    if (e.target !== photoInput) {
+      photoInput.click();
+    }
+  });
+
   photoInput.addEventListener('change', (e) => {
     if (e.target.files && e.target.files[0]) {
       handlePhotoFile(e.target.files[0]);
@@ -321,12 +314,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function handlePhotoFile(file) {
     const validTypes = ['image/png', 'image/jpeg', 'image/jpg'];
+    const fileExtension = file.name.split('.').pop().toLowerCase();
+    const validExtensions = ['png', 'jpg', 'jpeg'];
     const maxSize = 2 * 1024 * 1024; // 2MB
     
     photoError.textContent = "";
     document.getElementById('photo-instructions').style.color = "var(--text-muted)";
 
-    if (!validTypes.includes(file.type)) {
+    // Validate MIME type OR file extension for robustness across systems
+    if (!validTypes.includes(file.type) && !validExtensions.includes(fileExtension)) {
       setPhotoError("Only JPG, JPEG, and PNG formats are allowed.");
       return;
     }
@@ -414,7 +410,7 @@ document.addEventListener('DOMContentLoaded', () => {
     roleFieldsAdmin.style.display = 'none';
     emergencyContactGroup.style.display = 'none';
 
-    // Remove required attributes from fields to avoid blocking step navigation
+    // Remove required attributes from fields to avoid blocking submit validation
     clearRequiredAttributes();
 
     if (role === 'Doctor') {
@@ -578,6 +574,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // Success indicator helper
   function showSuccess(input) {
     if (!input) return;
     const group = input.closest('.form-group');
@@ -605,7 +602,6 @@ document.addEventListener('DOMContentLoaded', () => {
   function validateField(input) {
     if (!input) return true;
     
-    // Readonly inputs bypass success border styling
     if (input.hasAttribute('readonly')) {
       clearValidationState(input);
       return true;
@@ -738,196 +734,86 @@ document.addEventListener('DOMContentLoaded', () => {
     return true;
   }
 
-  // --- MULTI-STEP NAVIGATION LOGIC (4 Steps total) ---
-  function getStepFields(stepNum) {
-    if (stepNum === 1) {
-      return ['username', 'role'];
-    }
-    if (stepNum === 2) {
-      const baseFields = ['fullname', 'dob', 'gender', 'email', 'phone', 'country', 'state', 'city', 'zip', 'address'];
-      const role = roleSelect.value;
-      if (role === 'Doctor') {
-        return baseFields.concat(['doc-employee-id', 'doc-department', 'doc-license', 'doc-specialization', 'doc-experience', 'doc-joining']);
-      }
-      if (role === 'Patient') {
-        return baseFields.concat(['pat-blood', 'pat-insurance', 'emergency-name', 'emergency-relation', 'emergency-phone']);
-      }
-      if (role === 'Caregiver') {
-        return baseFields.concat(['car-employee-id', 'car-relationship', 'car-assigned-patient', 'car-shift', 'emergency-name', 'emergency-relation', 'emergency-phone']);
-      }
-      return baseFields;
-    }
-    if (stepNum === 3) {
-      return ['password', 'confirm-password'];
-    }
-    return []; // Review step has no inputs
-  }
-
-  function validateStep(stepNum) {
+  // --- SINGLE FORM VALIDATION ON SUBMIT ---
+  function validateForm() {
     let isValid = true;
-    
-    // Custom check for profile picture in Step 1
-    if (stepNum === 1 && !photoBase64) {
-      setPhotoError("Profile photo upload is required to register a profile.");
-      isValid = false;
+    let firstInvalidElement = null;
+
+    const fieldsToValidate = [
+      usernameInput,
+      document.getElementById('fullname'),
+      dobInput,
+      document.getElementById('gender'),
+      document.getElementById('email'),
+      document.getElementById('phone'),
+      document.getElementById('country'),
+      document.getElementById('state'),
+      document.getElementById('city'),
+      document.getElementById('zip'),
+      addressTextarea,
+      passwordInput,
+      confirmPasswordInput
+    ];
+
+    // Collect Dynamic Role-Specific Fields
+    const role = roleSelect.value;
+    if (role === 'Doctor') {
+      fieldsToValidate.push(
+        document.getElementById('doc-employee-id'),
+        document.getElementById('doc-department'),
+        document.getElementById('doc-license'),
+        document.getElementById('doc-specialization'),
+        document.getElementById('doc-experience'),
+        document.getElementById('doc-joining')
+      );
+    } else if (role === 'Patient') {
+      fieldsToValidate.push(
+        document.getElementById('pat-blood'),
+        document.getElementById('pat-insurance'),
+        document.getElementById('emergency-name'),
+        document.getElementById('emergency-relation'),
+        document.getElementById('emergency-phone')
+      );
+    } else if (role === 'Caregiver') {
+      fieldsToValidate.push(
+        document.getElementById('car-employee-id'),
+        document.getElementById('car-relationship'),
+        document.getElementById('car-assigned-patient'),
+        document.getElementById('car-shift'),
+        document.getElementById('emergency-name'),
+        document.getElementById('emergency-relation'),
+        document.getElementById('emergency-phone')
+      );
     }
 
-    // Validate step fields
-    const fieldIds = getStepFields(stepNum);
-    fieldIds.forEach(id => {
-      const el = document.getElementById(id);
-      if (el) {
-        const fieldValid = validateField(el);
-        if (!fieldValid) isValid = false;
+    // Execute validation on all fields
+    fieldsToValidate.forEach(input => {
+      if (input) {
+        const fieldOk = validateField(input);
+        if (!fieldOk) {
+          isValid = false;
+          if (!firstInvalidElement) firstInvalidElement = input;
+        }
       }
     });
 
-    if (stepNum === 1 && usernameCheckedState === 'taken') {
+    if (usernameCheckedState === 'taken') {
       isValid = false;
+      showError(usernameInput, "Username already exists in system database.");
+      if (!firstInvalidElement) firstInvalidElement = usernameInput;
+    }
+
+    if (firstInvalidElement) {
+      firstInvalidElement.focus();
+      firstInvalidElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 
     return isValid;
   }
 
-  function updateWizardUI() {
-    // 1. Show/hide fieldsets (Step 1 to Step 4)
-    for (let i = 1; i <= 4; i++) {
-      const fieldset = document.getElementById(`step-${i}-fieldset`);
-      if (fieldset) {
-        if (i === currentStep) {
-          fieldset.classList.add('active');
-        } else {
-          fieldset.classList.remove('active');
-        }
-      }
-    }
-
-    // 2. Update step titles
-    updateTitles();
-
-    // 3. Update step indicator nodes
-    const nodes = stepsIndicator.querySelectorAll('.step-indicator-node');
-    nodes.forEach(node => {
-      const stepIdx = parseInt(node.getAttribute('data-step'));
-      node.className = 'step-indicator-node';
-      
-      if (stepIdx === currentStep) {
-        node.classList.add('active');
-      } else if (stepIdx < currentStep) {
-        node.classList.add('completed');
-        // Set completed nodes to checkmark
-        node.querySelector('.node-circle').innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="width: 14px; height: 14px;"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
-      } else {
-        node.querySelector('.node-circle').textContent = stepIdx;
-      }
-    });
-
-    const lines = stepsIndicator.querySelectorAll('.step-indicator-line');
-    lines.forEach((line, idx) => {
-      if (idx < currentStep - 1) {
-        line.classList.add('completed');
-      } else {
-        line.classList.remove('completed');
-      }
-    });
-
-    // 4. Update Navigation Buttons
-    if (currentStep === 1) {
-      prevBtn.style.display = 'none';
-      nextBtn.style.display = 'inline-flex';
-      submitBtn.style.display = 'none';
-    } else if (currentStep === 4) {
-      prevBtn.style.display = 'inline-flex';
-      nextBtn.style.display = 'none';
-      submitBtn.style.display = 'inline-flex';
-      populateReviewData();
-    } else {
-      prevBtn.style.display = 'inline-flex';
-      nextBtn.style.display = 'inline-flex';
-      submitBtn.style.display = 'none';
-    }
-
-    // Scroll card to top view
-    document.querySelector('.card').scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
-
-  function updateTitles() {
-    const titles = {
-      1: { title: "Profile Information", sub: "Initialize clinical credentials, identity number, and account role." },
-      2: { title: "Personal Details", sub: "Input general identification parameters, contact details, and location." },
-      3: { title: "Security Details", sub: "Establish high-security authentication parameters and credentials." },
-      4: { title: "Review & Submit", sub: "Audit input metrics, verify role permissions, and submit form." }
-    };
-
-    stepTitle.textContent = titles[currentStep].title;
-    stepSubtitle.textContent = titles[currentStep].sub;
-  }
-
-  // Next / Prev button events
-  nextBtn.addEventListener('click', () => {
-    if (validateStep(currentStep)) {
-      currentStep++;
-      saveDraftToStorage();
-      updateWizardUI();
-    } else {
-      // Shake step container or highlight first error
-      const activeFieldset = document.querySelector('.form-step-fieldset.active');
-      const firstErr = activeFieldset.querySelector('.error-state input, .error-state select, .error-state textarea');
-      if (firstErr) {
-        firstErr.focus();
-        firstErr.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
-    }
-  });
-
-  prevBtn.addEventListener('click', () => {
-    if (currentStep > 1) {
-      currentStep--;
-      saveDraftToStorage();
-      updateWizardUI();
-    }
-  });
-
-  // Step Node clicks (Allow going back or forward if valid)
-  stepsIndicator.querySelectorAll('.step-indicator-node').forEach(node => {
-    node.addEventListener('click', () => {
-      const targetStep = parseInt(node.getAttribute('data-step'));
-      if (targetStep < currentStep) {
-        currentStep = targetStep;
-        saveDraftToStorage();
-        updateWizardUI();
-      } else if (targetStep > currentStep) {
-        let pathValid = true;
-        for (let i = currentStep; i < targetStep; i++) {
-          if (!validateStep(i)) {
-            pathValid = false;
-            break;
-          }
-        }
-        if (pathValid) {
-          currentStep = targetStep;
-          saveDraftToStorage();
-          updateWizardUI();
-        }
-      }
-    });
-  });
-
-  // Edit Step buttons on Review step
-  document.querySelectorAll('.btn-edit-step').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const step = parseInt(btn.getAttribute('data-target-step'));
-      currentStep = step;
-      saveDraftToStorage();
-      updateWizardUI();
-    });
-  });
-
   // --- DYNAMIC PROFILE COMPLETION CALCULATOR ---
   function updateProfileCompletion() {
-    // Collect all required elements
     const requiredInputs = [
-      { el: photoBase64, weight: 1 },
       { el: usernameInput.value, weight: 1, minLen: 4 },
       { el: roleSelect.value, weight: 1 },
       { el: document.getElementById('fullname').value, weight: 1, minLen: 2 },
@@ -969,33 +855,10 @@ document.addEventListener('DOMContentLoaded', () => {
     completionFill.style.width = `${percent}%`;
   }
 
-  // --- REVIEW STEP POPULATION ---
-  function populateReviewData() {
-    reviewDisplayName.textContent = document.getElementById('fullname').value || 'User Details';
-    reviewDisplayRole.textContent = roleSelect.value || 'None';
-    reviewDisplayUserid.textContent = userIdInput.value || 'SM0000';
-    reviewProfileImg.src = photoBase64 || defaultProfilePhotoSvg;
-    
-    reviewUsernameVal.textContent = usernameInput.value || '-';
-    reviewEmailVal.textContent = document.getElementById('email').value || '-';
-    reviewPhoneVal.textContent = document.getElementById('phone').value || '-';
-    reviewDobVal.textContent = dobInput.value || '-';
-    reviewGenderVal.textContent = document.getElementById('gender').value || '-';
-    
-    const street = addressTextarea.value || '';
-    const city = document.getElementById('city').value || '';
-    const state = document.getElementById('state').value || '';
-    const country = document.getElementById('country').value || '';
-    const zip = document.getElementById('zip').value || '';
-    reviewAddressVal.textContent = street ? `${street}, ${city}, ${state}, ${country} - ${zip}` : '-';
-  }
-
   // --- LOCALSTORAGE AUTOSAVE & RESTORE ---
   function saveDraftToStorage() {
     const draft = {
-      currentStep,
       photoBase64,
-      userid: userIdInput.value,
       username: usernameInput.value,
       role: roleSelect.value,
       fullname: document.getElementById('fullname').value,
@@ -1011,11 +874,11 @@ document.addEventListener('DOMContentLoaded', () => {
       isDirty
     };
 
-    localStorage.setItem('smartmed_draft', JSON.stringify(draft));
+    localStorage.setItem('smartmed_draft_single', JSON.stringify(draft));
   }
 
   function restoreDraftFromStorage() {
-    const dataStr = localStorage.getItem('smartmed_draft');
+    const dataStr = localStorage.getItem('smartmed_draft_single');
     if (!dataStr) {
       updateProfileCompletion();
       return;
@@ -1023,15 +886,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     try {
       const data = JSON.parse(dataStr);
-      currentStep = data.currentStep || 1;
-      // Safeguard currentStep boundary
-      if (currentStep > 4) currentStep = 4;
-      
       photoBase64 = data.photoBase64 || null;
       isDirty = data.isDirty || false;
 
-      // Populate basic
-      userIdInput.value = data.userid || '';
+      // Populate basic fields
       usernameInput.value = data.username || '';
       roleSelect.value = data.role || '';
       document.getElementById('fullname').value = data.fullname || '';
@@ -1079,8 +937,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       });
 
-      // Update indicators & completion UI
-      updateWizardUI();
+      // Update toggles & completion UI
+      toggleRoleFields(roleSelect.value);
       updateProfileCompletion();
 
     } catch (e) {
@@ -1110,14 +968,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   resetConfirmBtn.addEventListener('click', () => {
     // Clear draft from localStorage
-    localStorage.removeItem('smartmed_draft');
+    localStorage.removeItem('smartmed_draft_single');
     isDirty = false;
 
     // Reset Form
     form.reset();
 
-    // Reset step variables & UI elements
-    currentStep = 1;
+    // Reset UI elements
     photoBase64 = null;
     previewImage.src = defaultProfilePhotoSvg;
     photoInput.value = '';
@@ -1147,28 +1004,27 @@ document.addEventListener('DOMContentLoaded', () => {
     updateCriteriaItem(ruleNumber, false);
     updateCriteriaItem(ruleSpecial, false);
 
-    // Hide Modal & Update Wizard
+    // Hide Modal & Dynamic panels
     resetConfirmModal.classList.remove('active');
     resetConfirmModal.setAttribute('aria-hidden', 'true');
     
-    userIdInput.value = '';
-    generateUserId();
-    
-    updateWizardUI();
+    toggleRoleFields('');
     updateProfileCompletion();
   });
 
-  // --- FORM FINAL SUBMISSION HANDLING ---
+  // --- FORM SUBMISSION HANDLING ---
   form.addEventListener('submit', (e) => {
     e.preventDefault();
 
-    if (!validateStep(currentStep)) return;
+    if (!validateForm()) return;
 
     // 1. Lock screen overlay
-    const finalSubmitBtn = document.getElementById('submit-btn');
-    finalSubmitBtn.disabled = true;
+    submitBtn.disabled = true;
     loadingOverlay.classList.add('active');
     loadingOverlay.setAttribute('aria-hidden', 'false');
+
+    // Generate User ID dynamically (Backend simulation)
+    const generatedUserId = generateNewUserId();
 
     // 2. Latency Simulation
     setTimeout(() => {
@@ -1177,11 +1033,38 @@ document.addEventListener('DOMContentLoaded', () => {
       loadingOverlay.setAttribute('aria-hidden', 'true');
 
       // Set user details in Success Modal
-      document.getElementById('res-userid').textContent = userIdInput.value;
+      document.getElementById('res-userid').textContent = generatedUserId;
       document.getElementById('res-fullname').textContent = document.getElementById('fullname').value;
       document.getElementById('res-username').textContent = usernameInput.value;
       document.getElementById('res-email').textContent = document.getElementById('email').value;
       document.getElementById('res-role').textContent = roleSelect.value;
+      
+      // Set photo in Success Modal
+      const successPhoto = document.getElementById('res-photo');
+      if (successPhoto) {
+        successPhoto.src = photoBase64 || defaultProfilePhotoSvg;
+      }
+
+      // Save user details to mock DB in localStorage
+      const newUser = {
+        userid: generatedUserId,
+        fullname: document.getElementById('fullname').value,
+        username: usernameInput.value,
+        email: document.getElementById('email').value,
+        phone: document.getElementById('phone').value,
+        dob: dobInput.value,
+        gender: document.getElementById('gender').value,
+        role: roleSelect.value,
+        country: document.getElementById('country').value,
+        state: document.getElementById('state').value,
+        city: document.getElementById('city').value,
+        zip: document.getElementById('zip').value,
+        address: addressTextarea.value,
+        photo: photoBase64 || defaultProfilePhotoSvg
+      };
+      
+      mockUsers.push(newUser);
+      localStorage.setItem('smartmed_mock_users', JSON.stringify(mockUsers));
 
       // Open Success Modal
       successModal.classList.add('active');
@@ -1193,7 +1076,7 @@ document.addEventListener('DOMContentLoaded', () => {
       localStorage.setItem('smartmed_last_userid_index', count.toString());
 
       // Erase local draft
-      localStorage.removeItem('smartmed_draft');
+      localStorage.removeItem('smartmed_draft_single');
       isDirty = false;
 
       // Hard reset form values
@@ -1212,20 +1095,17 @@ document.addEventListener('DOMContentLoaded', () => {
       ageDisplayWrapper.style.display = 'none';
       strengthBox.classList.remove('active');
       resetStrengthBars();
-      finalSubmitBtn.disabled = false;
+      submitBtn.disabled = false;
+
+      toggleRoleFields('');
     }, 1600);
   });
 
   successDoneBtn.addEventListener('click', () => {
     successModal.classList.remove('active');
     successModal.setAttribute('aria-hidden', 'true');
-    currentStep = 1;
-    userIdInput.value = '';
-    generateUserId();
-    updateWizardUI();
     updateProfileCompletion();
   });
-
 
   // --- SEARCH BAR OVERLAY & SIMULATION ---
   searchUsernameInput.addEventListener('input', () => {
@@ -1291,7 +1171,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function loadMockUser(user) {
     // Populate form elements
-    userIdInput.value = user.userid;
     usernameInput.value = user.username;
     roleSelect.value = user.role;
     document.getElementById('fullname').value = user.fullname;
@@ -1324,23 +1203,16 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
 
-    usernameCheckedState = 'available'; // Simulated loaded users are available
+    usernameCheckedState = 'available';
     usernameStatus.textContent = "Available";
     usernameStatus.className = "username-status-badge available";
     usernameStatus.style.display = 'inline-block';
 
-    currentStep = 1;
     isDirty = true;
 
     saveDraftToStorage();
-    updateWizardUI();
+    toggleRoleFields(user.role);
     updateProfileCompletion();
-
-    // Notification toast or title alert that mock user loaded
-    stepSubtitle.textContent = `Credentials loaded for Practitioner/Staff member: ${user.fullname}.`;
-    setTimeout(() => {
-      updateTitles();
-    }, 4000);
   }
 
   // Close dropdown if user clicks outside
