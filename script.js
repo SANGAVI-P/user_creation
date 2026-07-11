@@ -24,9 +24,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const ageDisplayWrapper = document.getElementById('age-display-wrapper');
   const calculatedAgeSpan = document.getElementById('calculated-age');
   
-  // Address textareas
-  const addressTextarea = document.getElementById('address');
-  const addressCharCount = document.getElementById('address-char-count');
+  // Cancel button
+  const cancelBtn = document.getElementById('cancel-btn');
   
   // Dynamic Role Groups
   const roleFieldsDoctor = document.getElementById('role-fields-doctor');
@@ -65,10 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const resetConfirmBtn = document.getElementById('reset-confirm-btn');
   const resetButton = document.getElementById('reset-btn');
   
-  // Search Simulation Cache
-  const searchUsernameInput = document.getElementById('search-username-input');
-  const clearSearchBtn = document.getElementById('clear-search-btn');
-  const searchResultsDropdown = document.getElementById('search-results-dropdown');
+
 
   // SVG Cache
   const svgEyeOpen = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`;
@@ -91,7 +87,16 @@ document.addEventListener('DOMContentLoaded', () => {
       city: "Springfield",
       zip: "97477",
       address: "742 Evergreen Terrace, Medical District",
-      photo: defaultProfilePhotoSvg
+      photo: defaultProfilePhotoSvg,
+      status: "Active",
+      createdDate: "Jul 10, 2026",
+      password: "Password@123",
+      employeeId: "EMP-8801",
+      department: "Cardiology",
+      medicalLicense: "LIC-99210",
+      specialization: "Cardiovascular Surgery",
+      experience: "12",
+      joiningDate: "2014-06-01"
     },
     {
       userid: "SM0205",
@@ -107,7 +112,18 @@ document.addEventListener('DOMContentLoaded', () => {
       city: "Sydney",
       zip: "2000",
       address: "42 Wallaby Way, Sydney Cove",
-      photo: defaultProfilePhotoSvg
+      photo: defaultProfilePhotoSvg,
+      status: "Active",
+      createdDate: "Jul 10, 2026",
+      password: "Password@123",
+      patientId: "PT-4521",
+      bloodGroup: "O+",
+      insuranceNumber: "INS-77612",
+      medicalHistory: "Hypertension under control with lisinopril.",
+      allergies: "Penicillin",
+      emergencyName: "Shakira Caine",
+      emergencyRelation: "Spouse",
+      emergencyPhone: "8885559876"
     },
     {
       userid: "SM0309",
@@ -123,7 +139,17 @@ document.addEventListener('DOMContentLoaded', () => {
       city: "London",
       zip: "SW1A 2AA",
       address: "10 Downing St, Westminster",
-      photo: defaultProfilePhotoSvg
+      photo: defaultProfilePhotoSvg,
+      status: "Active",
+      createdDate: "Jul 10, 2026",
+      password: "Password@123",
+      caregiverId: "CG-9904",
+      caregiverRelationship: "In-Home Nurse",
+      assignedPatient: "Michael Robert Caine",
+      shift: "Morning",
+      emergencyName: "Sergei Rostov",
+      emergencyRelation: "Brother",
+      emergencyPhone: "7776664444"
     }
   ];
 
@@ -132,6 +158,13 @@ document.addEventListener('DOMContentLoaded', () => {
   if (storedUsers) {
     try {
       mockUsers = JSON.parse(storedUsers);
+      // Ensure all stored users have basic defaults if they were created earlier without them
+      mockUsers = mockUsers.map(user => ({
+        status: "Active",
+        createdDate: "Jul 10, 2026",
+        password: "Password@123",
+        ...user
+      }));
     } catch (e) {
       console.error("Failed to parse stored mock users: ", e);
       mockUsers = [...defaultMockUsers];
@@ -146,12 +179,17 @@ document.addEventListener('DOMContentLoaded', () => {
   let usernameCheckedState = 'empty'; // 'empty', 'checking', 'available', 'taken'
   let usernameDebounceTimer = null;
   let isDirty = false;
+  let isEditing = false;
+  let editingUserId = null;
 
   // Set initial dates
   initMaxDobDate();
 
   // Load Saved Draft on Init
   restoreDraftFromStorage();
+
+  // Check URL edit parameter
+  checkUrlEditMode();
 
   // Set floating labels positioning state
   const formInputs = document.querySelectorAll('.form-group input, .form-group select, .form-group textarea');
@@ -177,7 +215,7 @@ document.addEventListener('DOMContentLoaded', () => {
       validateField(input);
     });
 
-    input.addEventListener('input', () => {
+    const triggerUpdate = () => {
       updateLabelPosition();
       isDirty = true;
       saveDraftToStorage();
@@ -186,7 +224,10 @@ document.addEventListener('DOMContentLoaded', () => {
       if (group.classList.contains('error-state')) {
         validateField(input);
       }
-    });
+    };
+
+    input.addEventListener('input', triggerUpdate);
+    input.addEventListener('change', triggerUpdate);
 
     // Run initial positioning
     setTimeout(updateLabelPosition, 100);
@@ -253,7 +294,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updateCount();
   }
 
-  setupCharCounter(addressTextarea, addressCharCount);
+
   setupCharCounter(patHistoryTextarea, patHistoryCharCount);
   setupCharCounter(patAllergiesTextarea, patAllergiesCharCount);
 
@@ -375,7 +416,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     usernameDebounceTimer = setTimeout(() => {
       // Check in mock DB
-      const exists = mockUsers.some(user => user.username.toLowerCase() === username.toLowerCase());
+      const exists = mockUsers.some(user => 
+        user.username.toLowerCase() === username.toLowerCase() && 
+        (!isEditing || user.userid !== editingUserId)
+      );
       
       if (exists) {
         usernameStatus.textContent = "Already Exists";
@@ -683,12 +727,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    if (id === 'address') {
-      if (value.length < 10) {
-        showError(input, "Please write a comprehensive street address (min 10 characters).");
-        return false;
-      }
-    }
+
 
     if (id === 'doc-experience') {
       const num = parseInt(value);
@@ -750,7 +789,6 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('state'),
       document.getElementById('city'),
       document.getElementById('zip'),
-      addressTextarea,
       passwordInput,
       confirmPasswordInput
     ];
@@ -813,44 +851,34 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // --- DYNAMIC PROFILE COMPLETION CALCULATOR ---
   function updateProfileCompletion() {
-    const requiredInputs = [
-      { el: usernameInput.value, weight: 1, minLen: 4 },
-      { el: roleSelect.value, weight: 1 },
-      { el: document.getElementById('fullname').value, weight: 1, minLen: 2 },
-      { el: dobInput.value, weight: 1 },
-      { el: document.getElementById('gender').value, weight: 1 },
-      { el: document.getElementById('email').value, weight: 1 },
-      { el: document.getElementById('phone').value, weight: 1, minLen: 10 },
-      { el: document.getElementById('country').value, weight: 1 },
-      { el: document.getElementById('state').value, weight: 1 },
-      { el: document.getElementById('city').value, weight: 1 },
-      { el: document.getElementById('zip').value, weight: 1 },
-      { el: addressTextarea.value, weight: 1, minLen: 10 },
-      { el: passwordInput.value, weight: 1, minLen: 8 },
-      { el: confirmPasswordInput.value, weight: 1, matches: passwordInput.value }
-    ];
+    const requiredElements = Array.from(form.querySelectorAll('input[required], select[required], textarea[required]'));
+    
+    if (requiredElements.length === 0) {
+      completionPercentage.textContent = '0%';
+      completionFill.style.width = '0%';
+      return;
+    }
 
-    let completedWeight = 0;
-    let totalWeight = 0;
+    let completedCount = 0;
+    requiredElements.forEach(el => {
+      const val = el.value ? el.value.trim() : '';
+      if (val === '') return;
 
-    requiredInputs.forEach(item => {
-      totalWeight += item.weight;
-      let isMet = false;
-      if (item.el !== null && item.el !== undefined && item.el !== '') {
-        isMet = true;
-        if (item.minLen && item.el.toString().trim().length < item.minLen) {
-          isMet = false;
-        }
-        if (item.matches && item.el !== item.matches) {
-          isMet = false;
-        }
-      }
+      let isMet = true;
+      if (el.id === 'username' && val.length < 4) isMet = false;
+      else if (el.id === 'fullname' && val.length < 2) isMet = false;
+      else if (el.id === 'phone' && val.replace(/\D/g, '').length < 10) isMet = false;
+      else if (el.id === 'emergency-phone' && val.replace(/\D/g, '').length < 10) isMet = false;
+
+      else if (el.id === 'password' && val.length < 8) isMet = false;
+      else if (el.id === 'confirm-password' && val !== passwordInput.value) isMet = false;
+
       if (isMet) {
-        completedWeight += item.weight;
+        completedCount++;
       }
     });
 
-    const percent = Math.round((completedWeight / totalWeight) * 100);
+    const percent = Math.round((completedCount / requiredElements.length) * 100);
     completionPercentage.textContent = `${percent}%`;
     completionFill.style.width = `${percent}%`;
   }
@@ -870,7 +898,6 @@ document.addEventListener('DOMContentLoaded', () => {
       state: document.getElementById('state').value,
       city: document.getElementById('city').value,
       zip: document.getElementById('zip').value,
-      address: addressTextarea.value,
       isDirty
     };
 
@@ -901,7 +928,7 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('state').value = data.state || '';
       document.getElementById('city').value = data.city || '';
       document.getElementById('zip').value = data.zip || '';
-      addressTextarea.value = data.address || '';
+
 
       // Set photo UI
       if (photoBase64) {
@@ -1023,8 +1050,8 @@ document.addEventListener('DOMContentLoaded', () => {
     loadingOverlay.classList.add('active');
     loadingOverlay.setAttribute('aria-hidden', 'false');
 
-    // Generate User ID dynamically (Backend simulation)
-    const generatedUserId = generateNewUserId();
+    // Generate User ID dynamically (Backend simulation) if not editing
+    const generatedUserId = isEditing ? editingUserId : generateNewUserId();
 
     // 2. Latency Simulation
     setTimeout(() => {
@@ -1045,8 +1072,8 @@ document.addEventListener('DOMContentLoaded', () => {
         successPhoto.src = photoBase64 || defaultProfilePhotoSvg;
       }
 
-      // Save user details to mock DB in localStorage
-      const newUser = {
+      // Build User Details object with all dynamic fields
+      const userDetails = {
         userid: generatedUserId,
         fullname: document.getElementById('fullname').value,
         username: usernameInput.value,
@@ -1059,21 +1086,76 @@ document.addEventListener('DOMContentLoaded', () => {
         state: document.getElementById('state').value,
         city: document.getElementById('city').value,
         zip: document.getElementById('zip').value,
-        address: addressTextarea.value,
-        photo: photoBase64 || defaultProfilePhotoSvg
+        address: '',
+        photo: photoBase64 || defaultProfilePhotoSvg,
+        status: isEditing ? (mockUsers.find(u => u.userid === editingUserId)?.status || "Active") : "Active",
+        createdDate: isEditing ? (mockUsers.find(u => u.userid === editingUserId)?.createdDate || new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })) : new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }),
+        password: passwordInput.value
       };
-      
-      mockUsers.push(newUser);
+
+      // Add role-specific details
+      if (roleSelect.value === 'Doctor') {
+        userDetails.employeeId = document.getElementById('doc-employee-id').value;
+        userDetails.department = document.getElementById('doc-department').value;
+        userDetails.medicalLicense = document.getElementById('doc-license').value;
+        userDetails.specialization = document.getElementById('doc-specialization').value;
+        userDetails.experience = document.getElementById('doc-experience').value;
+        userDetails.joiningDate = document.getElementById('doc-joining').value;
+      } else if (roleSelect.value === 'Patient') {
+        userDetails.patientId = document.getElementById('pat-id').value;
+        userDetails.bloodGroup = document.getElementById('pat-blood').value;
+        userDetails.insuranceNumber = document.getElementById('pat-insurance').value;
+        userDetails.medicalHistory = document.getElementById('pat-history').value;
+        userDetails.allergies = document.getElementById('pat-allergies').value;
+        
+        userDetails.emergencyName = document.getElementById('emergency-name').value;
+        userDetails.emergencyRelation = document.getElementById('emergency-relation').value;
+        userDetails.emergencyPhone = document.getElementById('emergency-phone').value;
+      } else if (roleSelect.value === 'Caregiver') {
+        userDetails.caregiverId = document.getElementById('car-employee-id').value;
+        userDetails.caregiverRelationship = document.getElementById('car-relationship').value;
+        userDetails.assignedPatient = document.getElementById('car-assigned-patient').value;
+        userDetails.shift = document.getElementById('car-shift').value;
+        
+        userDetails.emergencyName = document.getElementById('emergency-name').value;
+        userDetails.emergencyRelation = document.getElementById('emergency-relation').value;
+        userDetails.emergencyPhone = document.getElementById('emergency-phone').value;
+      }
+
+      // Update success modal titles
+      const modalTitleEl = document.getElementById('modal-title');
+      const modalDescEl = modalTitleEl.nextElementSibling;
+      if (isEditing) {
+        modalTitleEl.textContent = "User Updated Successfully!";
+        modalDescEl.textContent = "The user profile details have been updated.";
+      } else {
+        modalTitleEl.textContent = "User Created Successfully!";
+        modalDescEl.textContent = "The user profile and credentials have been initialized.";
+      }
+
+      // Save user details to mock DB in localStorage
+      if (isEditing) {
+        const index = mockUsers.findIndex(u => u.userid === editingUserId);
+        if (index !== -1) {
+          mockUsers[index] = userDetails;
+        } else {
+          mockUsers.push(userDetails);
+        }
+      } else {
+        mockUsers.push(userDetails);
+      }
       localStorage.setItem('smartmed_mock_users', JSON.stringify(mockUsers));
 
       // Open Success Modal
       successModal.classList.add('active');
       successModal.setAttribute('aria-hidden', 'false');
 
-      // Incrementation of database count of userid
-      let count = parseInt(localStorage.getItem('smartmed_last_userid_index') || '10');
-      count++;
-      localStorage.setItem('smartmed_last_userid_index', count.toString());
+      // Incrementation of database count of userid (if not editing)
+      if (!isEditing) {
+        let count = parseInt(localStorage.getItem('smartmed_last_userid_index') || '10');
+        count++;
+        localStorage.setItem('smartmed_last_userid_index', count.toString());
+      }
 
       // Erase local draft
       localStorage.removeItem('smartmed_draft_single');
@@ -1104,122 +1186,120 @@ document.addEventListener('DOMContentLoaded', () => {
   successDoneBtn.addEventListener('click', () => {
     successModal.classList.remove('active');
     successModal.setAttribute('aria-hidden', 'true');
-    updateProfileCompletion();
+    window.location.href = 'index.html';
   });
 
-  // --- SEARCH BAR OVERLAY & SIMULATION ---
-  searchUsernameInput.addEventListener('input', () => {
-    const val = searchUsernameInput.value.trim().toLowerCase();
-    
-    if (val === '') {
-      clearSearchBtn.style.display = 'none';
-      searchResultsDropdown.classList.remove('active');
-      return;
-    }
-
-    clearSearchBtn.style.display = 'block';
-
-    // Search matches from Mock DB
-    const matches = mockUsers.filter(user => 
-      user.username.toLowerCase().includes(val) || 
-      user.fullname.toLowerCase().includes(val) ||
-      user.userid.toLowerCase().includes(val)
-    );
-
-    populateSearchResults(matches);
-  });
-
-  clearSearchBtn.addEventListener('click', () => {
-    searchUsernameInput.value = '';
-    clearSearchBtn.style.display = 'none';
-    searchResultsDropdown.classList.remove('active');
-  });
-
-  function populateSearchResults(matches) {
-    searchResultsDropdown.innerHTML = '';
-    
-    if (matches.length === 0) {
-      const item = document.createElement('div');
-      item.className = 'search-result-item no-results';
-      item.textContent = 'No matching system users found';
-      searchResultsDropdown.appendChild(item);
-    } else {
-      matches.forEach(user => {
-        const item = document.createElement('div');
-        item.className = 'search-result-item';
-        item.innerHTML = `
-          <div class="search-result-info">
-            <span class="search-result-name">${user.fullname}</span>
-            <span class="search-result-meta">Username: @${user.username} | ID: ${user.userid}</span>
-          </div>
-          <span class="search-result-role">${user.role}</span>
-        `;
-        
-        item.addEventListener('click', () => {
-          loadMockUser(user);
-          searchResultsDropdown.classList.remove('active');
-          searchUsernameInput.value = '';
-          clearSearchBtn.style.display = 'none';
-        });
-
-        searchResultsDropdown.appendChild(item);
-      });
-    }
-
-    searchResultsDropdown.classList.add('active');
+  // --- FORM CANCELLATION ---
+  if (cancelBtn) {
+    cancelBtn.addEventListener('click', () => {
+      isDirty = false;
+      window.location.href = 'index.html';
+    });
   }
 
-  function loadMockUser(user) {
-    // Populate form elements
-    usernameInput.value = user.username;
-    roleSelect.value = user.role;
-    document.getElementById('fullname').value = user.fullname;
-    dobInput.value = user.dob;
-    document.getElementById('gender').value = user.gender;
-    document.getElementById('email').value = user.email;
-    document.getElementById('phone').value = user.phone;
-    document.getElementById('country').value = user.country;
-    document.getElementById('state').value = user.state;
-    document.getElementById('city').value = user.city;
-    document.getElementById('zip').value = user.zip;
-    addressTextarea.value = user.address;
+  function checkUrlEditMode() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const editUserId = urlParams.get('edit');
+    if (!editUserId) return;
 
-    // Photo preview
-    photoBase64 = user.photo;
-    previewImage.src = user.photo;
-    uploadControls.style.display = 'flex';
-    uploadTrigger.closest('.profile-upload-container').classList.add('success-state');
+    const user = mockUsers.find(u => u.userid === editUserId);
+    if (!user) return;
 
-    // Trigger age displays
-    calculateAge();
+    isEditing = true;
+    editingUserId = editUserId;
 
-    // Trigger floating label positions
+    // Change Titles
+    document.getElementById('wizard-step-title').textContent = "Edit User Settings";
+    document.getElementById('wizard-step-subtitle').textContent = `Updating profile details for user ${user.fullname} (${user.userid})`;
+    
+    // Change submit button text & icon
+    submitBtn.innerHTML = `
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 16px; height: 16px;">
+        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+        <polyline points="17 21 17 13 7 13 7 21"/>
+        <polyline points="7 3 7 8 15 8"/>
+      </svg>
+      Save Changes
+    `;
+
+    // Populate all details
+    usernameInput.value = user.username || '';
+    roleSelect.value = user.role || '';
+    document.getElementById('fullname').value = user.fullname || '';
+    dobInput.value = user.dob || '';
+    document.getElementById('gender').value = user.gender || '';
+    document.getElementById('email').value = user.email || '';
+    document.getElementById('phone').value = user.phone || '';
+    document.getElementById('country').value = user.country || '';
+    document.getElementById('state').value = user.state || '';
+    document.getElementById('city').value = user.city || '';
+    document.getElementById('zip').value = user.zip || '';
+    
+    // Populate role fields
+    toggleRoleFields(user.role);
+
+    if (user.role === 'Doctor') {
+      document.getElementById('doc-employee-id').value = user.employeeId || '';
+      document.getElementById('doc-department').value = user.department || '';
+      document.getElementById('doc-license').value = user.medicalLicense || '';
+      document.getElementById('doc-specialization').value = user.specialization || '';
+      document.getElementById('doc-experience').value = user.experience || '';
+      document.getElementById('doc-joining').value = user.joiningDate || '';
+    } else if (user.role === 'Patient') {
+      document.getElementById('pat-id').value = user.patientId || '';
+      document.getElementById('pat-blood').value = user.bloodGroup || '';
+      document.getElementById('pat-insurance').value = user.insuranceNumber || '';
+      document.getElementById('pat-history').value = user.medicalHistory || '';
+      document.getElementById('pat-allergies').value = user.allergies || '';
+      
+      document.getElementById('emergency-name').value = user.emergencyName || '';
+      document.getElementById('emergency-relation').value = user.emergencyRelation || '';
+      document.getElementById('emergency-phone').value = user.emergencyPhone || '';
+    } else if (user.role === 'Caregiver') {
+      document.getElementById('car-employee-id').value = user.caregiverId || '';
+      document.getElementById('car-relationship').value = user.caregiverRelationship || '';
+      document.getElementById('car-assigned-patient').value = user.assignedPatient || '';
+      document.getElementById('car-shift').value = user.shift || '';
+      
+      document.getElementById('emergency-name').value = user.emergencyName || '';
+      document.getElementById('emergency-relation').value = user.emergencyRelation || '';
+      document.getElementById('emergency-phone').value = user.emergencyPhone || '';
+    }
+
+    // Set photo
+    photoBase64 = user.photo || null;
+    if (photoBase64) {
+      previewImage.src = photoBase64;
+      uploadControls.style.display = 'flex';
+      uploadTrigger.closest('.profile-upload-container').classList.add('success-state');
+    } else {
+      previewImage.src = defaultProfilePhotoSvg;
+      uploadControls.style.display = 'none';
+      uploadTrigger.closest('.profile-upload-container').classList.remove('success-state');
+    }
+
+    // Floating label states and validation
     document.querySelectorAll('.form-group input, .form-group select, .form-group textarea').forEach(input => {
       const group = input.closest('.form-group');
       if (group && input.value && input.value.trim() !== '') {
         group.classList.add('has-value');
-        // Validate all populated inputs
-        validateField(input);
       }
     });
 
-    usernameCheckedState = 'available';
-    usernameStatus.textContent = "Available";
-    usernameStatus.className = "username-status-badge available";
-    usernameStatus.style.display = 'inline-block';
+    // Populate password (simulated or actual)
+    passwordInput.value = user.password || 'Password@123';
+    confirmPasswordInput.value = user.password || 'Password@123';
 
-    isDirty = true;
+    // Trigger age calculation
+    calculateAge();
 
-    saveDraftToStorage();
-    toggleRoleFields(user.role);
+    // Trigger completion recalculation
     updateProfileCompletion();
+
+    // Since we're editing, set username state as available so it doesn't complain
+    usernameCheckedState = 'available';
   }
 
-  // Close dropdown if user clicks outside
-  document.addEventListener('click', (e) => {
-    if (!e.target.closest('.search-panel-container')) {
-      searchResultsDropdown.classList.remove('active');
-    }
-  });
+
 
 });
