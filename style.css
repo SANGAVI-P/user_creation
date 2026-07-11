@@ -1692,7 +1692,7 @@ body {
   font-size: 13.5px;
   color: var(--text-muted);
   max-width: 340px;
-  margin-bottom: 20px;
+  margin-bottom: 0;
 }
 
 /* View Details Modal Grid */
